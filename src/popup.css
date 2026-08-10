@@ -1,0 +1,59 @@
+/*
+ * Nur der Rahmen des Popups. Liste, Platzhalterformular und Fußzeile teilen
+ * sich die Stile mit dem Overlay und kommen aus `CHOOSER_STYLE` — sie werden
+ * beim Start aus dem Modul eingefügt, damit es für beide Oberflächen genau eine
+ * Quelle gibt.
+ */
+
+body {
+  margin: 0;
+  width: 380px;
+  font: 13px/1.4 Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #333;
+  background: #fff;
+}
+
+h1 {
+  margin: 0;
+  padding: 10px 8px;
+  font-size: 14px;
+  border-bottom: 1px solid #e0e0e0;
+  border-left: 3px solid #da1f3d;
+}
+
+section[hidden] { display: none; }
+
+.lead { margin: 8px; color: #565656; }
+
+#pairing label { display: block; padding: 0 8px; }
+#pairing .name { display: block; margin-bottom: 2px; color: #565656; }
+
+#pasted {
+  font: 12px/1.4 ui-monospace, monospace;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 6px;
+  border: 1px solid #cbcdcf;
+  border-radius: 4px;
+  background: #f2f2f2;
+  resize: vertical;
+}
+
+#pasted:focus { outline: none; border-color: #da1f3d; background: #fff; }
+
+.target { margin: 8px; font-weight: 600; }
+.target.bad { font-weight: 400; color: #da1f3d; }
+
+.diagnostics {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 0;
+  padding: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.diagnostics dt { color: #565656; }
+.diagnostics dd { margin: 0; }
+
+#chooser { display: flex; flex-direction: column; max-height: 340px; }
