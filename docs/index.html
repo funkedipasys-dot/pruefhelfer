@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prüfhelfer – Chrome-Erweiterung für Prüfingenieure</title>
+  <meta name="description" content="Vier Handgriffe weniger pro Prüfung: Textbausteine, Kilometerstand, Erstzulassung und HU-Fälligkeit schneller eintragen. Ohne Konto, ohne Server, ohne Telemetrie.">
+  <link rel="canonical" href="https://funkedipasys-dot.github.io/pruefhelfer/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' rx='13' fill='%23126b66'/%3E%3Ccircle cx='24' cy='24' r='11.4' fill='none' stroke='%23fff' stroke-width='4.2' stroke-dasharray='56 16' stroke-dashoffset='-31'/%3E%3Cpath d='M17.5 24.3 L22 28.6 L31 18.5' fill='none' stroke='%2345c2b4' stroke-width='3.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" type="image/svg+xml">
+  <style>
+    /* ponytail: eine Datei, kein JS — Tokens aus dem Design-System (colors_and_type.css), inline übernommen */
+    @font-face { font-family: "Roboto"; src: url("fonts/Roboto-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: "Roboto"; src: url("fonts/Roboto-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
+    @font-face { font-family: "Roboto"; src: url("fonts/Roboto-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+
+    :root {
+      --petrol-10: #04302d;
+      --petrol-30: #0c5550;
+      --petrol-40: #126b66;
+      --petrol-90: #c6ece8;
+      --petrol-95: #e2f5f2;
+      --surface-bright: #ffffff;
+      --surface: #f7f8fa;
+      --surface-low: #f1f3f6;
+      --fg-1: #1a1c1e;
+      --fg-2: #42474e;
+      --fg-3: #5c626a;
+      --fg-4: #71777e;
+      --outline: #c3c8d0;
+      --outline-variant: #dde1e7;
+      --divider: #e8ebef;
+      --success: #2e7d32;
+      --success-cont: #d7f3da;
+      --success-text: #1b5e20;
+      --focus-ring: rgba(18, 107, 102, 0.40);
+      --elevation-1: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.10);
+      --elevation-2: 0 1px 2px rgba(16,24,40,.06), 0 2px 8px rgba(16,24,40,.08);
+      --font-ui: "Roboto", "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "Roboto Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+      --ease: cubic-bezier(.2, 0, 0, 1);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--surface);
+      color: var(--fg-1);
+      font: 400 16px/24px var(--font-ui);
+      letter-spacing: .15px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+    a { color: var(--petrol-40); transition: color .2s var(--ease); }
+    a:hover { color: var(--petrol-30); }
+    ::selection { background: var(--petrol-40); color: #fff; }
+    :focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); border-radius: 4px; }
+
+    /* ---------- Hero ---------- */
+    .hero { padding: 72px 0 64px; background: var(--surface-bright); border-bottom: 1px solid var(--divider); }
+    .hero .wrap { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; }
+    .brand {
+      display: flex; align-items: center; gap: 14px;
+      animation: rise .3s var(--ease) both;
+    }
+    .brand svg { display: block; }
+    .brand h1 { font: 500 22px/28px var(--font-ui); color: var(--fg-1); }
+    .hero .headline {
+      font: 400 clamp(32px, 5.5vw, 45px)/1.18 var(--font-ui);
+      letter-spacing: 0;
+      color: var(--fg-1);
+      max-width: 18ch;
+      animation: rise .3s .06s var(--ease) both;
+    }
+    .hero .lead {
+      font-size: 16px; line-height: 24px; color: var(--fg-2); max-width: 58ch;
+      animation: rise .3s .12s var(--ease) both;
+    }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 12px; animation: rise .3s .18s var(--ease) both; }
+    .btn {
+      display: inline-block; padding: 12px 24px;
+      font: 500 14px/20px var(--font-ui); letter-spacing: .1px;
+      border-radius: 8px; text-decoration: none;
+      transition: background .2s var(--ease), box-shadow .2s var(--ease), color .2s var(--ease);
+    }
+    .btn-primary { background: var(--petrol-40); color: #fff; }
+    .btn-primary:hover { background: var(--petrol-30); color: #fff; box-shadow: var(--elevation-2); }
+    .btn-outlined { color: var(--petrol-40); border: 1px solid var(--outline); background: transparent; }
+    .btn-outlined:hover { background: var(--petrol-95); color: var(--petrol-30); }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) {
+      .brand, .hero .headline, .hero .lead, .cta-row { animation: none; }
+      html { scroll-behavior: auto; }
+      * { transition-duration: .001ms !important; }
+    }
+
+    /* ---------- Abschnitte ---------- */
+    section { padding: 64px 0; border-bottom: 1px solid var(--divider); }
+    .kicker {
+      font: 500 12px/16px var(--font-ui);
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--petrol-40);
+      margin-bottom: 8px;
+    }
+    h2 { font: 400 28px/36px var(--font-ui); margin-bottom: 12px; }
+    section > .wrap > p { color: var(--fg-2); max-width: 62ch; }
+
+    .features { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 32px; }
+    .feature {
+      background: var(--surface-bright);
+      border: 1px solid var(--outline-variant);
+      border-radius: 12px;
+      box-shadow: var(--elevation-1);
+      padding: 24px;
+      display: flex; flex-direction: column; gap: 10px;
+      transition: box-shadow .2s var(--ease);
+    }
+    .feature:hover { box-shadow: var(--elevation-2); }
+    .feature .num { font: 500 12px/16px var(--font-mono); color: var(--fg-4); letter-spacing: .1em; }
+    .feature h3 { font: 500 16px/24px var(--font-ui); letter-spacing: .15px; }
+    .feature p { color: var(--fg-3); font-size: 14px; line-height: 20px; letter-spacing: .2px; flex: 1; }
+    .demo {
+      background: var(--surface-low);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font: 500 13px/1.9 var(--font-mono);
+      color: var(--fg-2);
+      white-space: nowrap; overflow-x: auto;
+    }
+    .demo .old { color: var(--fg-4); }
+    .demo .strike { text-decoration: line-through; text-decoration-color: #ba1a1a; color: var(--fg-4); }
+    .demo .chip {
+      display: inline-block; padding: 2px 12px;
+      border: 1px solid var(--petrol-40); border-radius: 9999px;
+      color: var(--petrol-40); font-weight: 500;
+    }
+    .demo .chip-filled {
+      display: inline-block; padding: 2px 12px;
+      border-radius: 9999px;
+      background: var(--petrol-90); color: var(--petrol-10); font-weight: 500;
+    }
+    kbd {
+      display: inline-block; padding: 0 8px;
+      border: 1px solid var(--outline); border-bottom-width: 2px; border-radius: 6px;
+      font: 500 12px/1.7 var(--font-mono); color: var(--fg-1);
+      background: var(--surface-bright);
+    }
+
+    /* ---------- Tabelle ---------- */
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 28px;
+      background: var(--surface-bright);
+      border: 1px solid var(--outline-variant);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: var(--elevation-1);
+    }
+    th, td { text-align: left; padding: 14px 20px; border-bottom: 1px solid var(--divider); font-size: 14px; line-height: 20px; letter-spacing: .2px; vertical-align: top; }
+    th { font: 500 12px/16px var(--font-ui); letter-spacing: .5px; text-transform: uppercase; color: var(--fg-3); background: var(--surface-low); }
+    td { color: var(--fg-2); }
+    tr:last-child td { border-bottom: none; }
+    td code, section code, footer code { font: 500 .92em/1 var(--font-mono); background: var(--surface-low); padding: 2px 6px; border-radius: 4px; color: var(--fg-1); }
+
+    .verify {
+      margin-top: 24px; padding: 18px 20px;
+      background: var(--success-cont);
+      border-radius: 12px;
+      font-size: 14px; line-height: 20px; letter-spacing: .2px;
+      color: var(--success-text); max-width: 68ch;
+    }
+    .verify strong { font-weight: 500; }
+    .verify code { background: rgba(255,255,255,.6); color: var(--success-text); }
+
+    /* ---------- Installation ---------- */
+    .way { font: 500 16px/24px var(--font-ui); margin: 32px 0 0; }
+    .way .tag {
+      display: inline-block; padding: 2px 12px; margin-left: 8px;
+      border-radius: 9999px; vertical-align: 2px;
+      background: var(--petrol-90); color: var(--petrol-10);
+      font: 500 12px/18px var(--font-ui); letter-spacing: .3px;
+    }
+    ol.steps { margin: 16px 0 0; padding: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 14px; max-width: 62ch; }
+    ol.steps li { counter-increment: step; display: flex; gap: 16px; align-items: baseline; color: var(--fg-2); font-size: 14px; line-height: 22px; letter-spacing: .2px; }
+    ol.steps li::before {
+      content: counter(step);
+      flex: none;
+      width: 28px; height: 28px;
+      display: grid; place-items: center;
+      background: var(--petrol-90); color: var(--petrol-10);
+      border-radius: 9999px;
+      font: 500 13px/1 var(--font-ui);
+      transform: translateY(4px);
+    }
+    .buildline { margin-top: 12px; font-size: 14px; line-height: 22px; letter-spacing: .2px; color: var(--fg-2); max-width: 62ch; }
+    .hint { margin-top: 26px; font-size: 12px; line-height: 16px; letter-spacing: .3px; color: var(--fg-4); }
+
+    /* ---------- KI-Abschnitt ---------- */
+    .ai-prompt {
+      margin-top: 20px; padding: 18px 20px;
+      background: var(--surface-low);
+      border: 1px dashed var(--outline);
+      border-radius: 12px;
+      font: 400 13px/1.75 var(--font-mono);
+      color: var(--fg-2);
+      white-space: pre-wrap; word-break: break-word;
+      max-width: 72ch;
+      user-select: all; -webkit-user-select: all;
+    }
+
+    /* ---------- Footer ---------- */
+    footer { padding: 56px 0 40px; font-size: 14px; line-height: 20px; letter-spacing: .2px; color: var(--fg-3); }
+    footer h3 { font: 500 16px/24px var(--font-ui); color: var(--fg-1); margin: 26px 0 6px; }
+    footer h3:first-child { margin-top: 0; }
+    footer p { max-width: 70ch; }
+    address { font-style: normal; }
+    .foot-bottom { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--divider); display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; font-size: 12px; color: var(--fg-4); }
+
+    @media (max-width: 700px) {
+      .features { grid-template-columns: 1fr; }
+      .hero { padding: 48px 0 44px; }
+      section { padding: 48px 0; }
+      th, td { padding: 12px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="brand">
+        <svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><rect width="48" height="48" rx="13" fill="#126b66"/><circle cx="24" cy="24" r="11.4" fill="none" stroke="#fff" stroke-width="4.2" stroke-dasharray="56 16" stroke-dashoffset="-31"/><path d="M17.5 24.3 L22 28.6 L31 18.5" fill="none" stroke="#45c2b4" stroke-width="3.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h1>Prüfhelfer</h1>
+      </div>
+      <p class="headline">Vier Handgriffe weniger pro Prüfung.</p>
+      <p class="lead">Eine Chrome-Erweiterung für Prüfingenieure, die täglich im GTÜ-Produktionstool arbeiten. Sie nimmt die kleinen Wiederholungen ab, die sich über den Tag summieren. Ohne Konto, ohne Server, ohne Telemetrie: alles bleibt auf dem Gerät.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip">Aktuelle Version herunterladen</a>
+        <a class="btn btn-outlined" href="https://github.com/funkedipasys-dot/pruefhelfer">Zum Repo auf GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <section id="funktionen">
+    <div class="wrap">
+      <p class="kicker">Funktionsumfang</p>
+      <h2>Was sie abnimmt</h2>
+      <div class="features">
+        <article class="feature">
+          <span class="num">01</span>
+          <h3>Textbausteine im Bemerkungsfeld</h3>
+          <p>Gängige Vermerke sind eingebaut, eigene lassen sich direkt am Feld anlegen. Der vollständige Text steht vor dem Einfügen da, nicht erst danach.</p>
+          <div class="demo"><span class="old">Bemerkung:</span> Baustein wählen <span class="chip-filled">Einfügen</span></div>
+        </article>
+        <article class="feature">
+          <span class="num">02</span>
+          <h3>Kilometerstand übernehmen</h3>
+          <p>Im Dialog „Wegstreckenzähler ändern" steht der alte Stand direkt unter dem leeren Pflichtfeld. Ein Klick trägt ihn ein, wahlweise mit Aufschlag für die Strecke bis zur Prüfung.</p>
+          <div class="demo"><span class="old">Alter Stand: 156.223 km</span> <span class="chip-filled">Übernehmen</span> <span class="chip">+2</span> <span class="chip">+5</span></div>
+        </article>
+        <article class="feature">
+          <span class="num">03</span>
+          <h3>Erstzulassung mit zweistelligem Jahr</h3>
+          <p>Aus „25.12.10" macht das Tool „25.12.0010" und meldet einen Fehler. Neben der Meldung erscheint ein Knopf mit dem Datum, das gemeint war. Ein Klick trägt es ein.</p>
+          <div class="demo"><span class="strike">25.12.0010</span> <span class="chip-filled">25.12.2010</span></div>
+        </article>
+        <article class="feature">
+          <span class="num">04</span>
+          <h3>HU fällig monatsweise</h3>
+          <p>Im Feld stehend springt ein Tastendruck einen Monat zurück oder vor. Aus „08.2026" wird mit drei Anschlägen „05.2026".</p>
+          <div class="demo"><kbd>←</kbd> <kbd>←</kbd> <kbd>←</kbd> <span class="old">08.2026 wird zu</span> <strong>05.2026</strong></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="datenschutz">
+    <div class="wrap">
+      <p class="kicker">Berechtigungen</p>
+      <h2>Bleibt auf dem Gerät</h2>
+      <p>Kein Hintergrunddienst, kein Netzwerkzugriff, keine Telemetrie. Insbesondere wird nicht erfasst, welcher Textbaustein benutzt wurde: das wäre eine Leistungsüberwachung des Prüfers und geht eine Erweiterung nichts an.</p>
+      <table>
+        <thead>
+          <tr><th scope="col">Berechtigung</th><th scope="col">Wofür</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>storage</code></td><td>Die selbst angelegten Textbausteine, lokal auf diesem Gerät.</td></tr>
+          <tr><td>Zugriff auf <code>shell-frontend.gtue.world</code></td><td>Ohne Zugriff auf die Seite kein Knopf an ihrem Feld.</td></tr>
+        </tbody>
+      </table>
+      <div class="verify">
+        <strong>Nachprüfbar, ohne zu glauben:</strong> Ein Test baut die Erweiterung und durchsucht das Ergebnis nach <code>fetch</code>, <code>XMLHttpRequest</code> und Serveradressen. Findet sich etwas davon, schlägt der Build fehl. Der Test liegt offen im Repo (<code>src/light/build.spec.ts</code>).
+      </div>
+    </div>
+  </section>
+
+  <section id="installation">
+    <div class="wrap">
+      <p class="kicker">Installation</p>
+      <h2>Bis zum Chrome Web Store: entpackt laden</h2>
+      <p>Die Erweiterung ist noch nicht im Chrome Web Store. Bis dahin wird sie als entpackte Erweiterung geladen, fertig gebaut oder selbst gebaut.</p>
+
+      <p class="way">Fertige Version <span class="tag">empfohlen</span></p>
+      <ol class="steps">
+        <li><span><a href="https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip">pruefhelfer.zip herunterladen</a> und in einen dauerhaften Ordner entpacken.</span></li>
+        <li><span><code>chrome://extensions</code> öffnen und den Entwicklermodus einschalten.</span></li>
+        <li><span>„Entpackte Erweiterung laden" wählen und den entpackten Ordner auswählen.</span></li>
+      </ol>
+      <p class="buildline"><strong>Oder selbst bauen:</strong> <a href="https://github.com/funkedipasys-dot/pruefhelfer">Repo klonen</a>, <code>pnpm install &amp;&amp; pnpm package</code> ausführen und den Ordner <code>dist/</code> laden. Was im Zip steckt, ist genau dieses Build-Ergebnis.</p>
+      <p class="hint">Dass sie läuft, zeigt ein kleines weißes Kennzeichen oben mittig im Produktionstool, mit Fassungsnummer. Es fängt keinen Klick ab.</p>
+    </div>
+  </section>
+
+  <section id="ki">
+    <div class="wrap">
+      <p class="kicker">Für KI-Assistenten</p>
+      <h2>Installation delegieren</h2>
+      <p>Wer einen KI-Assistenten mit Rechnerzugriff nutzt (etwa Claude Code), kann ihm die Installation komplett übergeben. Den folgenden Auftrag einfach kopieren und einfügen, ein Klick auf den Text markiert alles:</p>
+      <pre class="ai-prompt">Installiere die Chrome-Erweiterung „Prüfhelfer" auf diesem Rechner. Lade https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip herunter und entpacke das Archiv in einen dauerhaften Ordner. Öffne chrome://extensions, aktiviere den Entwicklermodus und lade den entpackten Ordner über „Entpackte Erweiterung laden". Falls du stattdessen aus dem Quelltext bauen sollst: Klone https://github.com/funkedipasys-dot/pruefhelfer, führe pnpm install und pnpm package aus und lade den Ordner dist/. Die Dokumentation steht im README des Repos.</pre>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <h3>Kein Produkt der GTÜ</h3>
+      <p>Dieses Projekt steht in keiner Verbindung zur GTÜ Gesellschaft für Technische Überwachung mbH und wird von ihr weder herausgegeben noch unterstützt. „GTÜ" ist hier ausschließlich als Angabe darüber genannt, in welcher Anwendung die Erweiterung arbeitet. Ob der Einsatz einer Erweiterung mit den Nutzungsbedingungen des jeweiligen Prüftools vereinbar ist, muss jeder Anwender für sich klären.</p>
+
+      <h3>Verantwortung</h3>
+      <p>Die Erweiterung trägt Werte in Felder eines Prüfberichts ein. Was dort steht, verantwortet der Prüfer: vor dem Übernehmen prüfen.</p>
+
+      <h3>Lizenz</h3>
+      <p>Der Quelltext ist offen einsehbar, private und geschäftliche Nutzung der Erweiterung ist erlaubt. Weiterverbreitung und abgeleitete Werke sind nicht gestattet. Einzelheiten in der <a href="https://github.com/funkedipasys-dot/pruefhelfer/blob/main/LICENSE">LICENSE</a> im Repo.</p>
+
+      <h3 id="impressum">Impressum</h3>
+      <p>Angaben gemäß § 5 DDG. Verantwortlich für diese Seite und das Projekt Prüfhelfer:</p>
+      <address>
+        Christian Funke<br>
+        Zu den Wallwiesen 4<br>
+        26871 Papenburg<br>
+        E-Mail: <a href="mailto:c.funke@gtue-funke.de">c.funke@gtue-funke.de</a>
+      </address>
+
+      <div class="foot-bottom">
+        <span>© 2026 Christian Funke</span>
+        <span><a href="https://github.com/funkedipasys-dot/pruefhelfer">github.com/funkedipasys-dot/pruefhelfer</a></span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

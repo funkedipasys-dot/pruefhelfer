@@ -21,14 +21,20 @@ Dass sie läuft, zeigt ein kleines weißes Kennzeichen oben mittig — mit
 Fassungsnummer, damit auch die Frage „ist es der neue Stand?" beantwortet ist.
 Es fängt keinen Klick ab.
 
+**Website:** <https://funkedipasys-dot.github.io/pruefhelfer/> —
+**Direkt-Download der aktuellen Version:**
+[pruefhelfer.zip](https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip)
+
 ## Installieren
 
 Bis zur Veröffentlichung im Chrome Web Store als entpackte Erweiterung:
 
-1. Dieses Repo herunterladen, `pnpm install && pnpm build` — das Ergebnis liegt
-   in `dist/`. (Oder ein fertiges `dist/` aus den Releases nehmen.)
+1. [pruefhelfer.zip](https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip)
+   herunterladen und in einen dauerhaften Ordner entpacken — oder selbst bauen:
+   dieses Repo herunterladen, `pnpm install && pnpm build`, das Ergebnis liegt
+   in `dist/`.
 2. `chrome://extensions` öffnen, **Entwicklermodus** einschalten.
-3. „Entpackte Erweiterung laden" → `dist/` auswählen.
+3. „Entpackte Erweiterung laden" → den entpackten Ordner (bzw. `dist/`) auswählen.
 4. Einen Prüfauftrag im Produktionstool öffnen. Am Bemerkungsfeld erscheint
    oben rechts der Knopf **Textbausteine**; neben dem alten Kilometerstand
    erscheinen die Übernahme-Knöpfe; neben einer Erstzulassung mit zweistelligem
