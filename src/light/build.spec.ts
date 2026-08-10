@@ -4,14 +4,17 @@
  *
  * „Ohne Konto, ohne Server" ist keine Beteuerung, sondern eine Eigenschaft des
  * Bündels — und genau so wird sie hier geprüft: kein Netzwerkaufruf, kein
- * Kopplungscode, keine Serveradresse. Ein versehentlicher Import aus
- * `core/sync.ts` zöge beides hinein, ohne dass `typecheck` etwas merkt.
+ * Kopplungscode, keine Serveradresse. Ein versehentlich hinzugezogenes Modul
+ * mit Server-Anbindung brächte beides mit, ohne dass `typecheck` etwas merkt.
  *
- * **Diese Datei steht bewusst unter `src/light/` und nicht bei den übrigen
- * Bau-Tests:** sie wird ins öffentliche Repo mitgespiegelt. Dessen README beruft
- * sich auf sie; ein Beleg, der beim Klonenden fehlt, ist kein Beleg. Alles, was
- * die Pro-Fassung betrifft, gehört deshalb nach `src/build.spec.ts` — hier darf
- * nichts stehen, das ohne Pro-Dateien nicht läuft.
+ * **Diese Datei ist der Beleg, auf den sich das README beruft** — sie liegt
+ * deshalb im selben Repo wie der Quelltext, den sie prüft. Ein Beleg, der beim
+ * Klonenden fehlt, ist kein Beleg.
+ *
+ * Geprüft wird gegen eine **Liste von Ausgängen, nicht gegen einen einzelnen
+ * Namen.** `fetch(` als Zeichenkette abzufragen ließ `navigator.sendBeacon`,
+ * `WebSocket`, `EventSource`, `new Image().src` und schon `globalThis.fetch`
+ * unbemerkt durch — ein Wächter, der nur den geraden Weg kennt, bewacht nichts.
  *
  * Gebaut wird in den Speicher (`write: false`) — kein `dist/` nötig, damit der
  * Test auch auf einer frisch geklonten Arbeitskopie durchläuft.
@@ -55,6 +58,30 @@ async function bundle(entry: string, format: 'esm' | 'iife'): Promise<string> {
   return result.outputFiles.map((file) => file.text).join('\n');
 }
 
+/**
+ * Jeder Weg, auf dem ein Byte diesen Rechner verlassen könnte.
+ *
+ * Absichtlich großzügig: ein Treffer heißt „hinsehen", nicht „Fehler". Lieber
+ * ein Test, der bei einer harmlosen Umbenennung anschlägt, als einer, der eine
+ * Datenübertragung durchwinkt, weil sie anders geschrieben war.
+ */
+const NETZ_AUSGAENGE: readonly [string, RegExp][] = [
+  ['fetch', /\bfetch\b/],
+  ['XMLHttpRequest', /\bXMLHttpRequest\b/],
+  ['sendBeacon', /\bsendBeacon\b/],
+  ['WebSocket', /\bWebSocket\b/],
+  ['EventSource', /\bEventSource\b/],
+  ['RTCPeerConnection', /\bRTCPeerConnection\b/],
+  ['navigator.geolocation', /\bgeolocation\b/],
+  // Nachrichten an einen Hintergrunddienst — den es hier nicht gibt.
+  ['chrome.runtime.sendMessage/connect', /\bchrome\.runtime\.(sendMessage|connect)\b/],
+  // Nachladen zur Laufzeit: ein Weg, der die Prüfung des Bündels umginge.
+  ['dynamisches import()', /\bimport\s*\(/],
+  ['importScripts', /\bimportScripts\b/],
+  // Der Klassiker: ein Bild mit den Daten in der Adresse.
+  ['new Image()', /new\s+Image\s*\(/],
+];
+
 describe('Offene Fassung ohne Server (Plan-Punkt 71-73)', () => {
   let light: string;
   let lightPopup: string;
@@ -67,12 +94,35 @@ describe('Offene Fassung ohne Server (Plan-Punkt 71-73)', () => {
   });
 
   it('ruft nirgends das Netz', () => {
-    for (const [name, code] of [
+    for (const [bundle, code] of [
       ['content', light],
       ['popup', lightPopup],
     ] as const) {
-      expect(code, name).not.toContain('fetch(');
-      expect(code, name).not.toContain('XMLHttpRequest');
+      for (const [ausgang, muster] of NETZ_AUSGAENGE) {
+        expect(muster.test(code), `${bundle}: ${ausgang}`).toBe(false);
+      }
+    }
+  });
+
+  /**
+   * Der Wächter muss anschlagen, sonst bewacht er nichts. Geprüft an einem
+   * Bündel, das absichtlich einen Ausgang enthält — ohne diesen Test wäre eine
+   * kaputte Liste von einer sauberen Erweiterung nicht zu unterscheiden.
+   */
+  it('würde einen Netzaufruf auch bemerken', () => {
+    const beispiele = [
+      'await fetch("https://beispiel.test");',
+      'navigator.sendBeacon("/x", "y");',
+      'new WebSocket("wss://beispiel.test");',
+      'new Image().src = "https://beispiel.test/?d=" + wert;',
+      'chrome.runtime.sendMessage({ was: "los" });',
+    ];
+
+    for (const beispiel of beispiele) {
+      expect(
+        NETZ_AUSGAENGE.some(([, muster]) => muster.test(beispiel)),
+        beispiel,
+      ).toBe(true);
     }
   });
 

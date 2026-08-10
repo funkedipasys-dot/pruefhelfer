@@ -1,5 +1,7 @@
 # Prüfhelfer
 
+[![CI](https://github.com/funkedipasys-dot/pruefhelfer/actions/workflows/ci.yml/badge.svg)](https://github.com/funkedipasys-dot/pruefhelfer/actions/workflows/ci.yml)
+
 Eine Chrome-Erweiterung für Prüfingenieure, die täglich im GTÜ-Produktionstool
 arbeiten. Sie nimmt vier Handgriffe ab, die sich pro Prüfung wiederholen:
 
@@ -27,7 +29,8 @@ Es fängt keinen Klick ab.
 
 ## Installieren
 
-Bis zur Veröffentlichung im Chrome Web Store als entpackte Erweiterung:
+Bis zur Veröffentlichung im Chrome Web Store als entpackte Erweiterung. Nötig
+sind [Node.js](https://nodejs.org) ab 20 und `pnpm` (`corepack enable`):
 
 1. [pruefhelfer.zip](https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip)
    herunterladen und in einen dauerhaften Ordner entpacken — oder selbst bauen:
@@ -52,9 +55,13 @@ wird **nicht erfasst, welcher Textbaustein benutzt wurde** — das wäre eine
 Leistungsüberwachung des Prüfers und geht eine Erweiterung nichts an.
 
 Das ist nicht nur behauptet, sondern geprüft: `src/light/build.spec.ts` baut die
-Erweiterung und durchsucht das **Ergebnis** nach `fetch`, `XMLHttpRequest` und
-Serveradressen. Findet sich etwas davon, schlägt der Test fehl. `pnpm test` führt
-ihn mit aus — nachprüfbar, ohne mir zu glauben.
+Erweiterung und durchsucht das **Ergebnis** nach jedem Weg, auf dem ein Byte den
+Rechner verlassen könnte — `fetch`, `XMLHttpRequest`, `sendBeacon`, `WebSocket`,
+`EventSource`, `RTCPeerConnection`, dynamisches `import()`, `new Image()`,
+Nachrichten an einen Hintergrunddienst, und Serveradressen dazu. Findet sich
+etwas davon, schlägt der Test fehl. Dass die Liste selbst noch greift, prüft ein
+zweiter Test an absichtlich schmutzigen Beispielen. `pnpm test` führt beide mit
+aus — nachprüfbar, ohne mir zu glauben.
 
 ## Aufbau
 
@@ -81,6 +88,11 @@ pnpm install
 pnpm package   # typecheck + Tests + Build nach dist/
 ```
 
+Verweise der Form „Plan-Punkt 47" in den Kommentaren zeigen auf das interne
+Umsetzungsdokument, aus dem dieser Code entstanden ist. Es gehört zur
+Pro-Fassung und ist nicht Teil dieses Repos; die Kommentare stehen trotzdem
+für sich.
+
 ## Pro-Fassung
 
 Es gibt eine zweite Fassung, in der die Textbausteine zentral für ein ganzes
@@ -95,12 +107,11 @@ Einzelheiten in [LICENSE](LICENSE). Kein Open Source im Sinne der OSI.
 
 ## Kein Produkt der GTÜ
 
-Dieses Projekt steht in keiner Verbindung zur GTÜ Gesellschaft für Technische
-Überwachung mbH und wird von ihr weder herausgegeben noch unterstützt. „GTÜ" ist
-hier ausschließlich als Angabe darüber genannt, in welcher Anwendung die
-Erweiterung arbeitet. Ob der Einsatz einer Erweiterung mit den
-Nutzungsbedingungen des jeweiligen Prüftools vereinbar ist, muss jeder Anwender
-für sich klären.
+Prüfhelfer ist ein unabhängiges Projekt: für die Verwendung mit dem Prüfsystem
+der GTÜ Gesellschaft für Technische Überwachung mbH entwickelt, aber nicht von
+ihr — es wird von der GTÜ weder herausgegeben noch unterstützt, geprüft oder
+freigegeben. „GTÜ" ist hier ausschließlich als Angabe darüber genannt, in
+welcher Anwendung die Erweiterung arbeitet.
 
 Keine Gewähr: Die Erweiterung trägt Werte in Felder eines Prüfberichts ein.
 **Was dort steht, verantwortet der Prüfer** — vor dem Übernehmen prüfen.

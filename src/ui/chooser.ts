@@ -482,9 +482,10 @@ export function createChooser(container: ParentNode, deps: ChooserDeps): Chooser
     input.addEventListener('input', () => armRemove(false));
   }
 
-  /** Derselbe `isTrusted`-Riegel wie bei der Aktion: unser Schatten ist offen,
-   * die GTÜ-Seite käme sonst an diese Knöpfe und könnte einen eigenen Baustein
-   * unterschieben, den der Prüfer später arglos einfügt. */
+  /** Derselbe `isTrusted`-Riegel wie bei der Aktion: käme etwas an diese Knöpfe
+   * heran, könnte es einen eigenen Baustein unterschieben, den der Prüfer später
+   * arglos einfügt. Im Overlay hält der geschlossene Schatten die GTÜ-Seite
+   * bereits davon ab; der Riegel gilt zusätzlich und auch im Popup. */
   saveButton.addEventListener('click', (event) => {
     if (!event.isTrusted) {
       setMessage('Speichern ist nur per Klick möglich.');

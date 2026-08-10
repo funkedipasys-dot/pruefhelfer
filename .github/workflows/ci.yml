@@ -1,0 +1,36 @@
+# Das README beruft sich auf `pnpm test` als Beleg dafür, dass die Erweiterung
+# ohne Netzwerkzugriff auskommt. Ein Beleg, den niemand einlöst, ist keiner —
+# deshalb läuft hier bei jedem Push dieselbe Kette wie lokal: typecheck, Tests,
+# Build. Der Build gehört dazu, weil `build.spec.ts` am gebauten Ergebnis prüft.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm package
+
+      # Damit sich die Erweiterung ohne Node-Installation ausprobieren lässt.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pruefhelfer-dist
+          path: dist/

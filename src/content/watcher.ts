@@ -28,11 +28,16 @@ export interface FieldWatcherOptions<T extends HTMLElement = HTMLTextAreaElement
   /** Das zuletzt gemeldete Feld ist weg. Folgt immer vor einem erneuten `onAttach`. */
   onDetach: () => void;
   /**
-   * Änderungen innerhalb dieses Elements werden übersprungen — das ist der
-   * eigene Overlay-Wirt. Er hängt zwar außerhalb des Angular-Baums an
-   * `document.body`, wird aber vom selben Beobachter erfasst.
+   * Änderungen innerhalb dieser Elemente werden übersprungen — das sind die
+   * eigenen Overlay-Wirte. Sie hängen zwar außerhalb des Angular-Baums an
+   * `document.body`, werden aber vom selben Beobachter erfasst.
+   *
+   * **Alle Wirte, nicht nur der eigene.** Es sind vier, und jede Regung eines
+   * jeden weckt sonst die Beobachter der übrigen drei. Falsch wird davon nichts
+   * — jede Auswertung fragt den Zustand ohnehin neu ab —, aber es ist Arbeit
+   * für nichts.
    */
-  ignoreWithin?: Element;
+  ignoreWithin?: Element | readonly Element[];
 }
 
 /** Beendet die Beobachtung. Meldet ein noch verbundenes Feld vorher ab. */
@@ -59,9 +64,17 @@ export function watchField<T extends HTMLElement = HTMLTextAreaElement>(
     if (current !== null) options.onAttach(current);
   };
 
-  const ignoreWithin = options.ignoreWithin;
+  const ignored =
+    options.ignoreWithin === undefined
+      ? []
+      : Array.isArray(options.ignoreWithin)
+        ? [...options.ignoreWithin]
+        : [options.ignoreWithin as Element];
+
   const observer = new MutationObserver((records) => {
-    if (ignoreWithin !== undefined && records.every((record) => isWithin(record, ignoreWithin))) return;
+    if (ignored.length > 0 && records.every((record) => ignored.some((host) => isWithin(record, host)))) {
+      return;
+    }
     resolve();
   });
 

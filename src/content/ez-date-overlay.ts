@@ -45,7 +45,10 @@ const FIELD_EVENTS = ['change', 'blur'] as const;
 export function createEzDateOverlay(deps: EzDateOverlayDeps): EzDateOverlayHandle {
   const host = document.createElement('div');
   host.id = EZ_DATE_HOST_ID;
-  const shadow = host.attachShadow({ mode: 'open' });
+  // Geschlossen: auf dem Knopf steht das Datum, das er einträgt. Eine Seite,
+  // die die Aufschrift ändern könnte, könnte damit ein anderes Datum
+  // versprechen als das, was ins Feld geht.
+  const shadow = host.attachShadow({ mode: 'closed' });
 
   const style = document.createElement('style');
   style.textContent = BAR_STYLE;
@@ -131,8 +134,9 @@ export function createEzDateOverlay(deps: EzDateOverlayDeps): EzDateOverlayHandl
    * Der Klickweg.
    *
    * Der Vorschlag wird hier **neu gelesen** statt aus der Aufschrift genommen.
-   * Der `isTrusted`-Riegel wie überall: unser Schatten ist offen, und ein per
-   * Skript ausgelöster Klick soll nichts in ein Prüffeld schreiben.
+   * Der `isTrusted`-Riegel wie überall: ein per Skript ausgelöster Klick soll
+   * nichts in ein Prüffeld schreiben — auch wenn der geschlossene Schatten die
+   * Seite von diesem Knopf ohnehin fernhält.
    */
   uebernehmen.addEventListener('click', (event: MouseEvent): void => {
     if (!event.isTrusted) {

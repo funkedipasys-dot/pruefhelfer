@@ -347,6 +347,49 @@ describe('Zustand aus dem Service Worker', () => {
   });
 });
 
+describe('Aufbau', () => {
+  /**
+   * Der Starter darf nicht dastehen, bevor ein Feld gefunden ist. `detach()`
+   * würde ihn verstecken — aber `detach()` läuft nie, wenn nie ein Feld da war,
+   * und das ist auf allen Seiten des Tools außerhalb des Ergebnis-Schritts der
+   * Normalfall. Sichtbar erzeugt stand er dort ohne `top`/`left` herum.
+   *
+   * Deshalb ein eigenes Overlay statt `harness`: das legt in `beforeEach`
+   * immer sofort ein Feld an und käme an diesen Zustand nie heran.
+   */
+  it('lässt den Starter weg, solange kein Feld verbunden ist', () => {
+    const overlay = createOverlay({
+      loadPanel: async () => ({ bausteine: BAUSTEINE, hint: null }),
+      insert: () => ({ ok: true, snippet: '' }),
+    });
+
+    try {
+      const launcher = overlay.shadow.querySelector<HTMLElement>('.launcher');
+      expect(launcher?.hidden).toBe(true);
+      expect(overlay.shadow.querySelector<HTMLElement>('.panel')?.hidden).toBe(true);
+    } finally {
+      overlay.destroy();
+    }
+  });
+
+  it('zeigt den Starter, sobald ein Feld verbunden ist', () => {
+    expect(query<HTMLElement>('.launcher').hidden).toBe(false);
+  });
+
+  /**
+   * Der Schatten ist geschlossen: die GTÜ-Seite darf die Vorschau nicht
+   * umschreiben können, während `run()` weiterhin den ausgewählten Baustein
+   * einfügt. Geprüft wird am Wirt im Dokument, nicht am zurückgegebenen
+   * `shadow` — genau diesen Weg nähme ein Skript der Seite.
+   */
+  it('hält den Schatten für die Seite verschlossen', () => {
+    const host = document.getElementById(OVERLAY_HOST_ID);
+
+    expect(host).not.toBeNull();
+    expect(host?.shadowRoot).toBeNull();
+  });
+});
+
 describe('Abbau', () => {
   it('versteckt Starter und Panel beim Abmelden', async () => {
     await openPanel();

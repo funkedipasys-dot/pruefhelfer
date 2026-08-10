@@ -164,6 +164,21 @@ describe('substituteTextbaustein', () => {
     expect(result).toEqual({ ok: false, reason: 'missing_values', names: ['a'] });
   });
 
+  it('setzt den Wert ohne umgebenden Leerraum ein', () => {
+    // Gemessen wird an der getrimmten Fassung — eingesetzt gehört dieselbe,
+    // sonst stünde der Leerraum im Prüfvermerk und zählte gegen die Grenze.
+    const result = substituteTextbaustein('Stand {{km}} km', { km: '  184731  ' });
+
+    expect(result).toEqual({ ok: true, text: 'Stand 184731 km' });
+  });
+
+  it('rechnet die Länge an der getrimmten Fassung', () => {
+    // Ungetrimmt wären es 12 Zeichen und der Baustein passte nicht.
+    const result = substituteTextbaustein('{{a}}', { a: '    xx    ' }, 2);
+
+    expect(result).toEqual({ ok: true, text: 'xx' });
+  });
+
   it('prüft die Länge erst NACH dem Einsetzen', () => {
     // Der Rohtext ist mit 9 Zeichen kurz; erst der Wert sprengt die Grenze.
     const result = substituteTextbaustein('{{a}}', { a: 'x'.repeat(20) }, 10);

@@ -29,12 +29,37 @@ import type { PanelContents } from '../content/overlay';
 import { watchField } from '../content/watcher';
 import type { ActionResult } from '../ui/chooser';
 
+/**
+ * Der Griff, mit dem eine spätere Einspeisung diese hier abräumt.
+ *
+ * Der Isolated World der Erweiterung überlebt eine erneute Einspeisung — ein
+ * Merker auf `window` ist deshalb der einzige Weg, an die Vorgängerin
+ * heranzukommen. Die Seite sieht ihn nicht: sie hat ihr eigenes `window`.
+ */
+const TEARDOWN = '__pruefhelferTeardown';
+
+interface TeardownHolder {
+  [TEARDOWN]?: () => void;
+}
+
 start();
 
 function start(): void {
-  // Wirte einer früheren Einspeisung abräumen statt auszusteigen — sonst wird
-  // ein Update nie wirksam, solange die Seite offen bleibt. Begründung
-  // ausführlich in `src/content.ts`.
+  const holder = window as unknown as TeardownHolder;
+
+  // **Die Vorgängerin abräumen statt auszusteigen** — sonst wird ein Update nie
+  // wirksam, solange die Seite offen bleibt.
+  //
+  // Ihre Wirte zu löschen genügt dafür nicht. Was an ihnen hängt, verschwindet
+  // mit ihnen; was am *Formular* hängt, bleibt. Der Monatsschritt an „HU fällig"
+  // hat gar keinen Wirt, nur einen Zuhörer am Feld: nach der zweiten Einspeisung
+  // sprang eine Pfeiltaste zwei Monate, nach der dritten drei — lautlos, in
+  // einem Feld des Prüfberichts.
+  holder[TEARDOWN]?.();
+
+  // Rückfall für eine Vorgängerin, die den Merker noch nicht kannte (Fassungen
+  // bis 0.6.1). Ihre Zuhörer bleiben dann zwar, aber wenigstens steht nichts
+  // doppelt auf dem Schirm.
   for (const id of [OVERLAY_HOST_ID, MILEAGE_HOST_ID, EZ_DATE_HOST_ID, BADGE_HOST_ID]) {
     document.getElementById(id)?.remove();
   }
@@ -59,26 +84,10 @@ function start(): void {
     },
   });
 
-  watchField({
-    root: document,
-    selector: FIELD_SELECTOR,
-    ignoreWithin: overlay.shadow.host,
-    onAttach: (field) => overlay.attach(field),
-    onDetach: () => overlay.detach(),
-  });
-
   const mileage = createMileageOverlay({
     read: readAltStand,
     apply: applyMileage,
     anchor: findAltStandLabel,
-  });
-
-  watchField<HTMLInputElement>({
-    root: document,
-    selector: resolveMileageField,
-    ignoreWithin: mileage.shadow.host,
-    onAttach: (field) => mileage.attach(field),
-    onDetach: () => mileage.detach(),
   });
 
   const ezDate = createEzDateOverlay({
@@ -87,26 +96,63 @@ function start(): void {
     anchor: findEzDateError,
   });
 
-  watchField<HTMLInputElement>({
-    root: document,
-    selector: EZ_DATE_FIELD_SELECTOR,
-    ignoreWithin: ezDate.shadow.host,
-    onAttach: (field) => ezDate.attach(field),
-    onDetach: () => ezDate.detach(),
-  });
-
   const huFaellig = createMonthStepper();
 
-  watchField<HTMLInputElement>({
-    root: document,
-    selector: HU_FAELLIG_FIELD_SELECTOR,
-    onAttach: (field) => huFaellig.attach(field),
-    onDetach: () => huFaellig.detach(),
-  });
+  // Ohne die fremde Marke: diese Fassung wird öffentlich verteilt und trägt den
+  // Namen aus ihrem eigenen Manifest (siehe `build.spec.ts`).
+  //
+  // Steht vor den Beobachtern, weil sein Wirt in deren Ausnahmeliste gehört —
+  // erst anlegen, dann beobachten.
+  const badge = createBadge(`Prüfhelfer ${version()}`);
 
-  // Ohne „GINO" und ohne die fremde Marke: diese Fassung wird öffentlich
-  // verteilt und trägt den Namen aus ihrem eigenen Manifest.
-  createBadge(`Prüfhelfer ${version()}`);
+  // Jeder Beobachter überspringt die Wirte **aller** Overlays, nicht nur den
+  // eigenen: sonst weckt jede Regung des einen die Beobachter der anderen drei.
+  const hosts = [overlay.shadow.host, mileage.shadow.host, ezDate.shadow.host, badge.shadow.host];
+
+  const stops = [
+    watchField({
+      root: document,
+      selector: FIELD_SELECTOR,
+      ignoreWithin: hosts,
+      onAttach: (field) => overlay.attach(field),
+      onDetach: () => overlay.detach(),
+    }),
+    watchField<HTMLInputElement>({
+      root: document,
+      selector: resolveMileageField,
+      ignoreWithin: hosts,
+      onAttach: (field) => mileage.attach(field),
+      onDetach: () => mileage.detach(),
+    }),
+    watchField<HTMLInputElement>({
+      root: document,
+      selector: EZ_DATE_FIELD_SELECTOR,
+      ignoreWithin: hosts,
+      onAttach: (field) => ezDate.attach(field),
+      onDetach: () => ezDate.detach(),
+    }),
+    watchField<HTMLInputElement>({
+      root: document,
+      selector: HU_FAELLIG_FIELD_SELECTOR,
+      ignoreWithin: hosts,
+      onAttach: (field) => huFaellig.attach(field),
+      onDetach: () => huFaellig.detach(),
+    }),
+  ];
+
+  holder[TEARDOWN] = () => {
+    // Zuerst den Merker löschen: `destroy()` ruft `detach()`, und nichts davon
+    // soll bei einem Fehler in der Mitte eine halb abgeräumte Instanz
+    // zurücklassen, die eine dritte Einspeisung noch einmal abzuräumen versucht.
+    delete holder[TEARDOWN];
+    // `stop()` meldet ein verbundenes Feld ab — das ist der Zuhörer am Formular,
+    // um den es geht. `destroy()` räumt danach die Wirte weg.
+    for (const stop of stops) stop();
+    overlay.destroy();
+    mileage.destroy();
+    ezDate.destroy();
+    badge.destroy();
+  };
 }
 
 /** Die Fassungsnummer fürs Kennzeichen — ohne sie ist es nur ein Lämpchen. */

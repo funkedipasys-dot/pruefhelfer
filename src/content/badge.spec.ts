@@ -7,7 +7,9 @@ let badge: BadgeHandle;
 
 beforeEach(() => {
   document.body.replaceChildren();
-  badge = createBadge('GINO · Prüfhelfer 0.5.0');
+  // Eine erfundene Nummer: geprüft wird, dass die Aufschrift durchgereicht wird,
+  // nicht welche gerade aktuell ist.
+  badge = createBadge('Prüfhelfer 9.9.9');
 });
 
 afterEach(() => {
@@ -25,7 +27,7 @@ it('hängt genau einen eigenen Wirt an body', () => {
 });
 
 it('nennt Fassung und Nummer — sonst beantwortet es die Anschlussfrage nicht', () => {
-  expect(query('.text').textContent).toBe('GINO · Prüfhelfer 0.5.0');
+  expect(query('.text').textContent).toBe('Prüfhelfer 9.9.9');
 });
 
 it('ist von Anfang an sichtbar, anders als die Knöpfe an den Feldern', () => {
@@ -47,4 +49,10 @@ it('sitzt oben in der Kopfleiste, nicht unten', () => {
 it('räumt sich restlos ab', () => {
   badge.destroy();
   expect(document.getElementById(BADGE_HOST_ID)).toBeNull();
+});
+
+it('hält den Schatten für die Seite verschlossen', () => {
+  // Ein Kennzeichen, das die Seite umschreiben kann, wäre als Nachweis
+  // wertlos — sie käme über `host.shadowRoot` daran.
+  expect(document.getElementById(BADGE_HOST_ID)?.shadowRoot).toBeNull();
 });

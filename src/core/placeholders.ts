@@ -167,6 +167,12 @@ export type SubstitutionResult =
  *
  * Ein Wert, der nur aus Leerraum besteht, zählt als leer: er sähe im Feld aus
  * wie eine vergessene Eingabe.
+ *
+ * **Eingesetzt wird der getrimmte Wert** — derselbe, an dem die Leerprüfung
+ * eine Zeile vorher gemessen hat. Ihn ungetrimmt einzusetzen hieße, gegen etwas
+ * anderes zu prüfen als einzusetzen: `„  7  "` käme durch, stünde dann aber mit
+ * seinem Leerraum im Prüfvermerk und zählte damit gegen die Obergrenze des
+ * Feldes.
  */
 export function substituteTextbaustein(
   text: string,
@@ -178,14 +184,16 @@ export function substituteTextbaustein(
     return { ok: false, reason: 'invalid_text', issues: parsed.issues };
   }
 
-  const missing = parsed.names.filter((name) => (values[name] ?? '').trim() === '');
+  const trimmed = new Map(parsed.names.map((name) => [name, (values[name] ?? '').trim()]));
+
+  const missing = parsed.names.filter((name) => trimmed.get(name) === '');
   if (missing.length > 0) {
     return { ok: false, reason: 'missing_values', names: missing };
   }
 
   let out = '';
   for (const segment of parsed.segments) {
-    out += segment.kind === 'literal' ? segment.text : (values[segment.name] as string);
+    out += segment.kind === 'literal' ? segment.text : (trimmed.get(segment.name) as string);
   }
 
   if (out.length > limit) {

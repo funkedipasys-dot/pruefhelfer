@@ -29,12 +29,20 @@ export const MILEAGE_OFFSETS = [2, 5] as const;
  * statt mitgelesen zu werden: eine Laufleistung ist ganzzahlig, und aus
  * `184731,5` darf nie `1847315` werden — ein um den Faktor zehn zu hoher
  * Kilometerstand wäre der teuerste denkbare Fehler dieses Features.
+ *
+ * **Ein Trenner zählt nur vor einer vollen Dreiergruppe.** Sonst schützt die
+ * Kommaregel allein gegen das Komma: `184731 5` — zwei Zahlen, durch ein
+ * Leerzeichen getrennt — ergäbe genau die 1847315, die sie verhindern soll.
+ * Gelesen wird deshalb entweder eine durchgehend gruppierte Zahl (`184 731`,
+ * `184.731`) oder eine ungruppierte (`184731`); was danach kommt, gehört nicht
+ * mehr dazu.
  */
 export function parseAltStand(text: string): number | null {
   // Trennzeichen als Escape-Sequenzen: geschuetztes und schmales
   // geschuetztes Leerzeichen waeren im Quelltext nicht von einem
-  // normalen zu unterscheiden.
-  const match = /\d[\d.\u00a0\u202f ]*/.exec(text);
+  // normalen zu unterscheiden. Die gruppierte Schreibweise steht zuerst —
+  // sonst gewaenne `\d+` schon bei `184.731` mit blossen `184`.
+  const match = /\d{1,3}(?:[.\u00a0\u202f ]\d{3})+|\d+/.exec(text);
   if (match === null) return null;
 
   const digits = match[0].replace(/\D/g, '');

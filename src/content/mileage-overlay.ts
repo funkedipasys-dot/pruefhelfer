@@ -61,7 +61,10 @@ export interface MileageOverlayHandle {
 export function createMileageOverlay(deps: MileageOverlayDeps): MileageOverlayHandle {
   const host = document.createElement('div');
   host.id = MILEAGE_HOST_ID;
-  const shadow = host.attachShadow({ mode: 'open' });
+  // Geschlossen: die Aufschrift der Knöpfe nennt den Kilometerstand, der
+  // eingetragen wird. Käme die Seite an sie heran, könnte sie eine andere Zahl
+  // anzeigen als die, die der Klick einträgt.
+  const shadow = host.attachShadow({ mode: 'closed' });
 
   const style = document.createElement('style');
   style.textContent = BAR_STYLE;
@@ -125,6 +128,10 @@ export function createMileageOverlay(deps: MileageOverlayDeps): MileageOverlayHa
     // Auftauchen kann er trotzdem noch, dafür bleibt alles angemeldet.
     if (base === null) {
       bar.hidden = true;
+      // Die Beschriftung von vorhin ist mit dem Wert verschwunden; sie weiter
+      // zu beobachten hieße, an einem Element zu hängen, das die Anwendung
+      // längst ausgetauscht hat.
+      observeAnchor(null);
       return;
     }
 
@@ -132,15 +139,19 @@ export function createMileageOverlay(deps: MileageOverlayDeps): MileageOverlayHa
     bar.hidden = false;
 
     const anchor = deps.anchor(current);
-    if (anchor !== observedAnchor) {
-      if (observedAnchor !== null) resizeObserver.unobserve(observedAnchor);
-      if (anchor !== null) resizeObserver.observe(anchor);
-      observedAnchor = anchor;
-    }
+    observeAnchor(anchor);
 
     const { top, left } = barPosition(anchor ?? current);
     bar.style.top = `${top}px`;
     bar.style.left = `${left}px`;
+  };
+
+  /** Immer nur eine Beschriftung beobachten — die, an der die Leiste hängt. */
+  const observeAnchor = (anchor: Element | null): void => {
+    if (anchor === observedAnchor) return;
+    if (observedAnchor !== null) resizeObserver.unobserve(observedAnchor);
+    if (anchor !== null) resizeObserver.observe(anchor);
+    observedAnchor = anchor;
   };
 
   const schedule = (): void => {
@@ -169,8 +180,10 @@ export function createMileageOverlay(deps: MileageOverlayDeps): MileageOverlayHa
    * vorhin genommen: die Knopfaufschrift ist Anzeige, verbindlich ist, was in
    * dem Moment auf der Seite steht.
    *
-   * Der `isTrusted`-Riegel wie überall — unser Schatten ist offen, und ein per
-   * Skript ausgelöster Klick soll nichts in ein Prüffeld schreiben.
+   * Der `isTrusted`-Riegel wie überall — ein per Skript ausgelöster Klick soll
+   * nichts in ein Prüffeld schreiben. Der geschlossene Schatten hält die Seite
+   * schon von diesen Knöpfen fern; der Riegel ist die zweite Reihe und gilt
+   * auch für alles, was den Schatten legitim erreicht.
    */
   const run = (offset: number) => (event: MouseEvent): void => {
     if (!event.isTrusted) {

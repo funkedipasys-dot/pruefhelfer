@@ -8,8 +8,14 @@
  * auf, und ein fremder Knoten darin ist entweder sofort wieder weg oder bringt
  * die Änderungserkennung durcheinander.
  *
- * **Alles im eigenen Shadow DOM.** Die Stile der GTÜ-Seite kommen nicht herein,
- * unsere nicht hinaus.
+ * **Alles im eigenen Shadow DOM, und zwar `mode: 'closed'`.** Die Stile der
+ * GTÜ-Seite kommen nicht herein, unsere nicht hinaus — und die Seite kommt gar
+ * nicht erst an unsere Knoten. Bei `'open'` läge `host.shadowRoot` für jedes
+ * Skript der Seite offen: die Vorschau ließe sich überschreiben, während
+ * `run()` weiterhin den ausgewählten Baustein einfügt. Der Prüfer bestätigte
+ * dann Text A und bekäme Text B ins Feld — ausgerechnet an der Stelle, die als
+ * Sicherheitsnetz gedacht ist. Die Tests kommen über das zurückgegebene
+ * `shadow` an den Inhalt und brauchen den offenen Weg nicht.
  *
  * Liste, Platzhalterformular und der `isTrusted`-Riegel stecken im gemeinsamen
  * `ui/chooser.ts` — dieselbe Bedienung wie im Popup (Plan-Punkt 47). Hier steht
@@ -133,13 +139,19 @@ ${CHOOSER_STYLE}`;
 export function createOverlay(deps: OverlayDeps): OverlayHandle {
   const host = document.createElement('div');
   host.id = OVERLAY_HOST_ID;
-  const shadow = host.attachShadow({ mode: 'open' });
+  const shadow = host.attachShadow({ mode: 'closed' });
 
   const style = document.createElement('style');
   style.textContent = STYLE;
 
   const launcher = document.createElement('div');
   launcher.className = 'launcher';
+  // **Verborgen, bis ein Feld da ist.** `attach()` blendet ihn ein, `detach()`
+  // wieder aus — aber `detach()` läuft nie, wenn nie ein Feld gefunden wurde.
+  // Sichtbar erzeugt stand der Knopf deshalb auf jeder Seite des Tools außerhalb
+  // des Ergebnis-Schritts herum, und mangels `top`/`left` an einer Stelle, die
+  // erst `reposition()` bestimmt.
+  launcher.hidden = true;
   const launcherButton = document.createElement('button');
   launcherButton.type = 'button';
   launcherButton.textContent = 'Textbausteine';
@@ -219,8 +231,8 @@ export function createOverlay(deps: OverlayDeps): OverlayHandle {
     // im GTÜ-Formular am unteren Rand, unterhalb schnitt der Viewport es ab.
     panel.style.bottom = `${Math.round(window.innerHeight - rect.top + 32)}px`;
     panel.style.left = right;
-    // ponytail: kein Flip nach unten — Flip nachrüsten, falls je ein Feld am
-    // oberen Viewport-Rand auftaucht.
+    // Kein Umklappen nach unten — nachrüsten, falls je ein Feld am oberen
+    // Viewport-Rand auftaucht.
     panel.style.maxHeight = `${Math.round(Math.max(160, Math.min(window.innerHeight * 0.6, rect.top - 40)))}px`;
   };
 

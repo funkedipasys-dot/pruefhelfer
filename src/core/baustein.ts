@@ -7,7 +7,8 @@
  * bloß um an zwei Typdeklarationen zu kommen.
  *
  * Hier steht deshalb nur, was ohne Backend Sinn ergibt. Was zur Kopplung
- * gehört — Umschlag, Zugangsdaten, Generationen — bleibt in `storage.ts`.
+ * gehört — Umschlag, Zugangsdaten, Generationen — bleibt in der Pro-Fassung und
+ * ist nicht Teil dieses Repos.
  */
 
 /**

@@ -64,7 +64,10 @@ export interface BadgeHandle {
 export function createBadge(label: string): BadgeHandle {
   const host = document.createElement('div');
   host.id = BADGE_HOST_ID;
-  const shadow = host.attachShadow({ mode: 'open' });
+  // Geschlossen wie die übrigen Wirte: die Seite hat an unseren Knoten nichts
+  // zu suchen. Hier steht zwar nur eine Fassungsnummer — aber ein Kennzeichen,
+  // das die Seite umschreiben kann, wäre als Nachweis nichts mehr wert.
+  const shadow = host.attachShadow({ mode: 'closed' });
 
   const style = document.createElement('style');
   style.textContent = STYLE;
