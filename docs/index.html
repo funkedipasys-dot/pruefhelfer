@@ -219,6 +219,20 @@
       section { padding: 48px 0; }
       th, td { padding: 12px 14px; }
     }
+
+    .badge-planned {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 9999px;
+      background: var(--surface-low);
+      border: 1px solid var(--outline);
+      color: var(--fg-4);
+      font: 500 11px/16px var(--font-ui);
+      letter-spacing: .3px;
+      margin-top: 8px;
+    }
+    .pro-cta { text-align: center; margin-top: 48px; }
+    .pro-cta small { display: block; margin-top: 12px; color: var(--fg-4); font-size: 13px; }
   </style>
 </head>
 <body>
@@ -314,6 +328,56 @@
       <h2>Installation delegieren</h2>
       <p>Wer einen KI-Assistenten mit Rechnerzugriff nutzt (etwa Claude Code), kann ihm die Installation komplett übergeben. Den folgenden Auftrag einfach kopieren und einfügen, ein Klick auf den Text markiert alles:</p>
       <pre class="ai-prompt">Installiere die Chrome-Erweiterung „Prüfhelfer" auf diesem Rechner. Lade https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip herunter und entpacke das Archiv in einen dauerhaften Ordner. Öffne chrome://extensions, aktiviere den Entwicklermodus und lade den entpackten Ordner über „Entpackte Erweiterung laden". Falls du stattdessen aus dem Quelltext bauen sollst: Klone https://github.com/funkedipasys-dot/pruefhelfer, führe pnpm install und pnpm package aus und lade den Ordner dist/. Die Dokumentation steht im README des Repos.</pre>
+    </div>
+  </section>
+
+  <section id="pro">
+    <div class="wrap">
+      <p class="kicker">Pro-Version</p>
+      <h2>Mehr für Prüforganisationen</h2>
+      <p style="color:var(--fg-2);max-width:52ch;margin-block:16px 40px">
+        Für Büros mit GINO-Anbindung sind erweiterte Funktionen verfügbar:
+        zentral verwaltet, automatisch synchronisiert.
+      </p>
+
+      <div class="features">
+
+        <div class="feature">
+          <span class="num">01</span>
+          <h3>Zentrale Textbausteine</h3>
+          <p>Der Admin pflegt die Bausteine in GINO, alle gekoppelten Geräte synchronisieren automatisch.</p>
+        </div>
+
+        <div class="feature">
+          <span class="num">02</span>
+          <h3>FSD-Automatik</h3>
+          <p>Neu eingehende Aufträge öffnen sich nach einstellbarer Wartezeit automatisch. Ein-/Ausschalter, deaktiviert sich bei manueller Bedienung.</p>
+        </div>
+
+        <div class="feature">
+          <span class="num">03</span>
+          <h3>Standort-Filterung</h3>
+          <p>Nur die Prüfstandorte des jeweiligen Prüfers werden angezeigt, kein Rauschen durch fremde Standorte.</p>
+          <span class="badge-planned">geplant</span>
+        </div>
+
+        <div class="feature">
+          <span class="num">04</span>
+          <h3>Plaketten-Schnellerfassung</h3>
+          <p>Plaketten-Verbrauch per Klick erfassen, datenschutzkonform, läuft ins Plakettenpool-Tool.</p>
+          <span class="badge-planned">geplant</span>
+        </div>
+
+      </div>
+
+      <div class="pro-cta">
+        <a class="btn btn-primary"
+           href="mailto:c.funke@gtue-funke.de?subject=Pr%C3%BCfhelfer%20Pro%20Anfrage"
+           rel="noopener">
+          Pro-Version anfragen
+        </a>
+        <small>Die Pro-Version setzt eine GINO-Anbindung voraus.</small>
+      </div>
     </div>
   </section>
 
