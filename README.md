@@ -17,7 +17,12 @@ arbeiten. Sie nimmt vier Handgriffe ab, die sich pro Prüfung wiederholen:
 - **HU fällig monatsweise** — im Feld stehend springt `←` einen Monat zurück,
   `→` einen vor. Aus `08.2026` wird mit drei Anschlägen `05.2026`.
 
-**Ohne Konto, ohne Server, ohne Registrierung.** Alles bleibt auf dem Gerät.
+**Ohne Konto, ohne Registrierung.** Alles, was du eingibst, bleibt auf dem
+Gerät — es gibt keinen Server, an den es gehen könnte.
+
+Die **einzige** Ausnahme ist eine Versionsabfrage: beim Öffnen des Popups wird
+höchstens einmal am Tag nachgesehen, ob eine neuere Fassung veröffentlicht
+wurde. Details unter [Was sie darf](#was-sie-darf).
 
 Dass sie läuft, zeigt ein kleines weißes Kennzeichen oben mittig — mit
 Fassungsnummer, damit auch die Frage „ist es der neue Stand?" beantwortet ist.
@@ -49,19 +54,62 @@ sind [Node.js](https://nodejs.org) ab 20 und `pnpm` (`corepack enable`):
 |---|---|
 | `storage` | Die selbst angelegten Textbausteine, lokal auf diesem Gerät. |
 | Zugriff auf `shell-frontend.gtue.world` | Ohne Zugriff auf die Seite kein Knopf an ihrem Feld. |
+| Zugriff auf `raw.githubusercontent.com/funkedipasys-dot/pruefhelfer/*` | Die Versionsabfrage. Nur dieses eine öffentliche Repo, sonst nichts. |
 
-Kein Hintergrunddienst, kein Netzwerkzugriff, keine Telemetrie. Insbesondere
-wird **nicht erfasst, welcher Textbaustein benutzt wurde** — das wäre eine
-Leistungsüberwachung des Prüfers und geht eine Erweiterung nichts an.
+Kein Hintergrunddienst, keine Telemetrie. Insbesondere wird **nicht erfasst,
+welcher Textbaustein benutzt wurde** — das wäre eine Leistungsüberwachung des
+Prüfers und geht eine Erweiterung nichts an.
+
+### Die Versionsabfrage
+
+Seit 0.6.7 gibt es genau einen Netzwerkaufruf, und er verdient eine ehrliche
+Beschreibung statt eines Kleingedruckten.
+
+**Warum.** Diese Erweiterung wird entpackt installiert. Chrome aktualisiert sie
+deshalb **nie** von selbst. Am 12.08.2026 gab es einen Fehler, bei dem im Feld
+„HU fällig" ein Datum stand, das die Anwendung nie übernommen hatte — sichtbar
+richtig, tatsächlich falsch. So etwas darf nicht monatelang unbemerkt in Betrieb
+bleiben, nur weil niemand von sich aus nach einer neuen Fassung sieht.
+
+**Was passiert.** Beim Öffnen des Popups, höchstens einmal in 24 Stunden, wird
+diese Datei gelesen:
+
+```
+https://raw.githubusercontent.com/funkedipasys-dot/pruefhelfer/main/src/light/manifest.json
+```
+
+Ein `GET` auf eine öffentliche Datei in einem öffentlichen Repo. Ohne Kennung,
+ohne Kopfzeilen, ohne Nutzlast. Verglichen wird nur die Fassungsnummer.
+
+**Was dabei übertragen wird.** Nichts über dich. GitHub sieht denselben Aufruf,
+den es sähe, wenn du die Datei im Browser öffnest — also deine IP-Adresse, wie
+bei jedem Seitenaufruf im Netz. Es geht **kein** Textbaustein, **kein**
+Kennzeichen, **kein** Auftrag und **keine** Nutzungsinformation hinaus. Es gibt
+auch keinen Weg, auf dem das ginge: die Anfrage hat keinen Körper, und die
+Antwort wird nur auf die Fassungsnummer hin ausgewertet.
+
+**Wenn du das nicht willst:** öffne das Popup nicht — ohne Popup kein Aufruf.
+Die Erweiterung arbeitet am Feld vollständig ohne Netz. Oder entziehe unter
+`chrome://extensions` den Zugriff auf `raw.githubusercontent.com`; dann
+unterbleibt die Abfrage und sonst ändert sich nichts.
+
+### Nachprüfbar, ohne mir zu glauben
 
 Das ist nicht nur behauptet, sondern geprüft: `src/light/build.spec.ts` baut die
 Erweiterung und durchsucht das **Ergebnis** nach jedem Weg, auf dem ein Byte den
 Rechner verlassen könnte — `fetch`, `XMLHttpRequest`, `sendBeacon`, `WebSocket`,
 `EventSource`, `RTCPeerConnection`, dynamisches `import()`, `new Image()`,
-Nachrichten an einen Hintergrunddienst, und Serveradressen dazu. Findet sich
-etwas davon, schlägt der Test fehl. Dass die Liste selbst noch greift, prüft ein
-zweiter Test an absichtlich schmutzigen Beispielen. `pnpm test` führt beide mit
-aus — nachprüfbar, ohne mir zu glauben.
+Nachrichten an einen Hintergrunddienst, und Serveradressen dazu.
+
+- Im **Content-Script** — dem Teil, der am Prüfauftrag mitarbeitet — ist **jeder**
+  dieser Wege verboten. Dort gibt es keine Ausnahme.
+- Im **Popup** ist genau eine Erwähnung von `fetch` erlaubt, und ein weiterer
+  Test verlangt, dass außer der Manifest-Adresse und dem Link auf die
+  Release-Seite **keine** weitere Adresse im Bündel vorkommt. „Eine Ausnahme"
+  ist damit eine geprüfte Zahl, keine Zählweise.
+
+Dass die Liste selbst noch greift, prüft ein zweiter Test an absichtlich
+schmutzigen Beispielen. `pnpm test` führt alle mit aus.
 
 ## Aufbau
 

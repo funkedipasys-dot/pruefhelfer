@@ -93,15 +93,53 @@ describe('Offene Fassung ohne Server (Plan-Punkt 71-73)', () => {
     manifest = await readJson<LightManifest>('src/light/manifest.json');
   });
 
-  it('ruft nirgends das Netz', () => {
-    for (const [bundle, code] of [
-      ['content', light],
-      ['popup', lightPopup],
-    ] as const) {
-      for (const [ausgang, muster] of NETZ_AUSGAENGE) {
-        expect(muster.test(code), `${bundle}: ${ausgang}`).toBe(false);
-      }
+  /**
+   * Das Content-Script bleibt vollständig netzfrei — dort wird am Prüfauftrag
+   * gearbeitet, dort hat kein Aufruf etwas verloren.
+   */
+  it('ruft aus dem Content-Script nirgends das Netz', () => {
+    for (const [ausgang, muster] of NETZ_AUSGAENGE) {
+      expect(muster.test(light), `content: ${ausgang}`).toBe(false);
     }
+  });
+
+  /**
+   * Das Popup hat **genau eine** Ausnahme: die Versionsabfrage.
+   *
+   * Sie ist nötig, weil eine entpackt geladene Erweiterung sich nie selbst
+   * aktualisiert — ein Fehler wie der vom 2026-08-12 bliebe sonst unbemerkt in
+   * Betrieb. Damit aus der Ausnahme keine Tür wird, ist sie hier dreifach
+   * eingegrenzt: kein anderer Ausgang, genau ein Aufruf, und nur diese Adresse.
+   */
+  it('ruft aus dem Popup nur die Versionsabfrage — sonst nichts', () => {
+    for (const [ausgang, muster] of NETZ_AUSGAENGE) {
+      if (ausgang === 'fetch') continue;
+      expect(muster.test(lightPopup), `popup: ${ausgang}`).toBe(false);
+    }
+
+    // Gezählt wird die **Erwähnung**, nicht die Aufrufform: `fetch` wird als
+    // Verweis weitergereicht (`fetchFn: fetch`) und im Kern unter anderem Namen
+    // gerufen. Nach `fetch(` zu suchen fände deshalb nichts — und ein Wächter,
+    // der nichts findet, meldet fälschlich Sauberkeit.
+    expect(lightPopup.match(/\bfetch\b/g) ?? [], 'genau eine Erwähnung').toHaveLength(1);
+    expect(lightPopup).toContain(
+      'https://raw.githubusercontent.com/funkedipasys-dot/pruefhelfer/main/src/light/manifest.json',
+    );
+  });
+
+  /**
+   * Die Gegenprobe zur Ausnahme: außer der Manifest-Adresse und dem Link auf
+   * die Release-Seite darf im Popup keine weitere Adresse stehen. Sonst wäre
+   * „eine Ausnahme" nur eine Zählweise.
+   */
+  it('nennt im Popup keine weitere Adresse', () => {
+    const erlaubt = [
+      'https://raw.githubusercontent.com/funkedipasys-dot/pruefhelfer/main/src/light/manifest.json',
+      'https://github.com/funkedipasys-dot/pruefhelfer/releases/latest',
+    ];
+    const gefunden = [...new Set(lightPopup.match(/https?:\/\/[^"'`\s)]+/g) ?? [])];
+
+    expect(gefunden.filter((adresse) => !erlaubt.includes(adresse))).toEqual([]);
   });
 
   /**
@@ -145,8 +183,18 @@ describe('Offene Fassung ohne Server (Plan-Punkt 71-73)', () => {
   it('kommt ohne Hintergrunddienst aus — es gibt nichts durchzureichen', () => {
     expect(manifest.background).toBeUndefined();
     expect(manifest.permissions).toEqual(['storage']);
-    expect(manifest.host_permissions).toBeUndefined();
     expect(manifest.optional_host_permissions).toBeUndefined();
+  });
+
+  /**
+   * Die Erlaubnis ist so eng wie der Aufruf: genau das öffentliche Repo, nichts
+   * sonst. Ohne Hintergrunddienst kann die Erweiterung damit nur das eine tun,
+   * wofür die Erlaubnis erteilt wurde.
+   */
+  it('darf nur das eigene öffentliche Repo erreichen', () => {
+    expect(manifest.host_permissions).toEqual([
+      'https://raw.githubusercontent.com/funkedipasys-dot/pruefhelfer/*',
+    ]);
   });
 
   it('ist ein MV3-Manifest und verlangt mindestens Chrome 102', () => {
