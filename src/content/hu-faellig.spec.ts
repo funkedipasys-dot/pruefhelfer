@@ -130,6 +130,32 @@ describe('stepFieldMonth', () => {
     expect(events).toEqual(['input']);
   });
 
+  it('meldet input UND change, sonst bleibt es bei der Anzeige', () => {
+    const field = makeField();
+    const events: string[] = [];
+    field.addEventListener('input', () => events.push('input'));
+    field.addEventListener('change', () => events.push('change'));
+
+    expect(stepFieldMonth(field, 1)).toBe(true);
+
+    // Ohne `change` übernimmt der Datepicker den Wert nicht ins Formularmodell:
+    // im Feld stünde der neue Monat, gerechnet würde mit dem alten.
+    expect(events).toEqual(['input', 'change']);
+  });
+
+  it('meldet kein change, wenn die Anwendung den Wert verworfen hat', () => {
+    const field = makeField();
+    const events: string[] = [];
+    field.addEventListener('input', () => {
+      events.push('input');
+      field.value = 'zurueckgesetzt';
+    });
+    field.addEventListener('change', () => events.push('change'));
+
+    expect(stepFieldMonth(field, 1)).toBe(false);
+    expect(events).toEqual(['input']);
+  });
+
   it('setzt den Cursor ans Ende, damit weitergetippt werden kann', () => {
     const field = makeField();
 
@@ -138,11 +164,35 @@ describe('stepFieldMonth', () => {
     expect(field.selectionStart).toBe('07.2026'.length);
   });
 
-  it('befüllt ein leeres Feld nicht', () => {
+  it('liefert im leeren Feld den aktuellen Monat, egal in welche Richtung', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 7, 15)); // 15. August 2026
+
+    const rueckwaerts = makeField('');
+    expect(stepFieldMonth(rueckwaerts, -1)).toBe(true);
+    expect(rueckwaerts.value).toBe('08.2026');
+
+    const vorwaerts = makeField('');
+    expect(stepFieldMonth(vorwaerts, 1)).toBe(true);
+    expect(vorwaerts.value).toBe('08.2026');
+
+    vi.useRealTimers();
+  });
+
+  it('blättert ab dem zweiten Druck vom aktuellen Monat aus weiter', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 7, 15)); // 15. August 2026
     const field = makeField('');
 
-    expect(stepFieldMonth(field, -1)).toBe(false);
-    expect(field.value).toBe('');
+    stepFieldMonth(field, 1);
+    expect(field.value).toBe('08.2026');
+    stepFieldMonth(field, 1);
+    expect(field.value).toBe('09.2026');
+    stepFieldMonth(field, -1);
+    stepFieldMonth(field, -1);
+    expect(field.value).toBe('07.2026');
+
+    vi.useRealTimers();
   });
 
   it('hält sich an die Grenze aus dem min-Attribut', () => {
@@ -208,8 +258,8 @@ describe('die Tastenbedienung', () => {
     expect(anmelden(field).press('ArrowLeft').defaultPrevented).toBe(true);
   });
 
-  it('lässt die Taste in Ruhe, wo nichts zu springen ist', () => {
-    const field = makeField('');
+  it('lässt die Taste in Ruhe, wenn kein Sprung möglich ist', () => {
+    const field = makeField('01.1952'); // an der unteren Grenze
 
     // Sonst stünde der Cursor still, obwohl gar nichts passiert ist.
     expect(anmelden(field).press('ArrowLeft').defaultPrevented).toBe(false);

@@ -1,6 +1,6 @@
 {
   "name": "pruefhelfer",
-  "version": "0.6.2",
+  "version": "0.6.6",
   "private": true,
   "type": "module",
   "description": "Chrome-Erweiterung: Textbausteine, Kilometerstand, Erstzulassung und HU-Fälligkeit im Prüfstützpunkt schneller eintragen. Ohne Konto, ohne Server.",

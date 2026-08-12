@@ -11,7 +11,7 @@
  */
 
 import { checkField } from './field';
-import { stepMonth } from '../core/month-step';
+import { currentMonth, stepMonth } from '../core/month-step';
 
 /** Das Feld „HU fällig" in den zusätzlichen Angaben. */
 export const HU_FAELLIG_FIELD_SELECTOR = '#inspectmobility-zusaetzlicheangaben-hufaellig-textinput-input';
@@ -29,23 +29,45 @@ export const MONTH_STEP_KEYS: Readonly<Record<string, number>> = { ArrowLeft: -1
  * Springt einen Monat, wenn es etwas zu springen gibt.
  *
  * `false` heißt: nichts angefasst, die Taste soll ihre normale Wirkung behalten.
- * Das ist der Fall bei einem leeren Feld, einer unverstandenen Schreibweise und
- * am Rand des erlaubten Bereichs. **Ein leeres Feld wird bewusst nicht
- * befüllt** — ein Datum, das nur entstanden ist, weil jemand eine Pfeiltaste
- * gedrückt hat, gehört nicht in einen Prüfbericht.
+ * Das ist der Fall bei einer unverstandenen Schreibweise und am Rand des
+ * erlaubten Bereichs.
+ *
+ * **Ein leeres Feld liefert der erste Druck den aktuellen Monat — ungesprungen.**
+ * Vorher diente der aktuelle Monat als Ausgangspunkt und wurde sofort
+ * übersprungen: aus einem leeren Feld wurde mit Pfeil rechts direkt der
+ * Folgemonat, mit Pfeil links der Vormonat, und der laufende Monat war der
+ * einzige, der sich nicht mit einem Druck einstellen ließ. Er ist aber der
+ * häufigste Fall. Jetzt setzt der erste Druck nur auf, jeder weitere blättert.
+ * Die Richtung der ersten Taste ist dabei bewusst egal — sie sagt nur „fang an".
  */
 export function stepFieldMonth(field: HTMLInputElement, step: number): boolean {
   if (checkField(field) !== null) return false;
 
-  const next = stepMonth(field.value, step, {
+  const bounds = {
     min: field.getAttribute('min') ?? undefined,
     max: field.getAttribute('max') ?? undefined,
-  });
+  };
+  const current = field.value.trim();
+  // Schrittweite 0 auf den aktuellen Monat: gibt ihn unverändert zurück, prüft
+  // ihn aber gegen dieselben Feldgrenzen wie jeden anderen Wert.
+  const next = current === '' ? stepMonth(currentMonth(), 0, bounds) : stepMonth(current, step, bounds);
   if (next === null) return false;
 
   field.value = next;
   field.dispatchEvent(new Event('input', { bubbles: true }));
   if (field.value !== next) return false;
+
+  // **Ohne `change` bleibt es bei der Anzeige.** Am echten Tool am 2026-08-12
+  // gemessen: nach `input` allein steht der neue Monat im Feld, das
+  // Formularmodell trägt aber weiter den alten — „Letzte HU" rührte sich nicht,
+  // und die Anwendung rechnete mit dem alten Wert weiter. Erst `change` löst
+  // die `dateChange`-Meldung des Datepickers aus, an der die Fachlogik hängt.
+  //
+  // `writeFieldValue()` in `field.ts` macht das längst richtig; hier fehlte es,
+  // weil dieser Pfad bewusst daran vorbeigeht, um den Fokus zu behalten. Ein
+  // Fokusverlust ist dafür nicht nötig — `change` genügt, und das Blättern mit
+  // den Pfeiltasten bleibt möglich.
+  field.dispatchEvent(new Event('change', { bubbles: true }));
 
   // Der Cursor landet nach dem Setzen am Anfang; ans Ende ist die Stelle, an
   // der beim Tippen weitergemacht würde.

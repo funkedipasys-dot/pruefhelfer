@@ -122,3 +122,9 @@ function daysInMonth(year: number, month: number): number {
 function pad(value: number): string {
   return String(value).padStart(2, '0');
 }
+
+/** Der aktuelle Monat als Feld-Schreibweise `MM.JJJJ`. */
+export function currentMonth(): string {
+  const d = new Date();
+  return `${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+}
