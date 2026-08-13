@@ -9,23 +9,25 @@ arbeiten. Sie nimmt sechs Handgriffe ab, die sich pro Prüfung wiederholen:
   eingebaut, eigene lassen sich direkt am Feld anlegen. Der vollständige Text
   steht vor dem Einfügen da, nicht erst danach.
 - **FSD-Jobs automatisch erstellen** — Schluss mit dem mühsamen Durchklicken
-  durch jeden Auftrag vor dem Außendienst. Ein Klick, und der Prüfhelfer geht
+  durch jeden Auftrag im Außendienst. Ein Klick, und der Prüfhelfer geht
   durch jeden offenen Auftrag in der Produktionsübersicht und startet alle
   FSD-Jobs. Wer beim ersten Auto ankommt, hat Jobs und Daten längst auf dem
   Zweitgerät. Details unter [Aufträge öffnen](#aufträge-öffnen).
+- **FSD-Automatik für unterwegs** — den Fahrzeugschein fernab vom Rechner
+  scannen: der Prüfhelfer erkennt den neuen Auftrag und klickt ihn an, sofern
+  die Automatik eingeschaltet ist. Der FSD-Job entsteht, obwohl der
+  Prüfingenieur gar nicht am Laptop sitzt. Startet **immer ausgeschaltet**.
 - **Kilometerstand übernehmen** — im Dialog „Wegstreckenzähler ändern" steht der
-  alte Stand direkt unter dem leeren Pflichtfeld. Ein Klick trägt ihn ein,
-  wahlweise mit `+2` oder `+5` für die Kilometer zwischen Ablesen und Prüfung.
+  alte Stand direkt unter dem leeren Pflichtfeld. Ein Klick trägt ihn ein. Bei
+  Nachkontrollen innerhalb der GTÜ, wenn das Fahrzeug Hof oder Werkstatt nicht
+  verlassen hat, passt er unverändert — sonst gleichen `+2` oder `+5` die
+  Strecke bis zur Prüfung aus.
 - **Mit Pfeiltasten durch die Monate springen** — im Feld „HU fällig" stehend
   springt `←` einen Monat zurück, `→` einen vor. Aus `08.2026` wird mit drei
   Anschlägen `05.2026`, ohne Zahlendreher beim Tippen.
-- **Erstzulassung mit zweistelligem Jahr** — `25.12.10` wird im Tool zu
+- **Korrekturvorschlag bei falscher Datumseingabe** — `25.12.10` wird im Tool zu
   `25.12.0010` und damit zum Fehler. Neben der Meldung erscheint ein Knopf mit
   dem Datum, das gemeint war; ein Klick trägt es ein.
-- **FSD-Automatik für unterwegs** — der Prüfer ist längst am Fahrzeug, der
-  Laptop bleibt im Auto. Er scannt einen Fahrzeugschein, der Auftrag läuft auf,
-  und der Prüfhelfer öffnet ihn und startet den FSD-Job, ohne dass jemand am
-  Rechner sitzt. Startet **immer ausgeschaltet**.
 
 **Ohne Konto, ohne Registrierung.** Alles, was du eingibst, bleibt auf dem
 Gerät — es gibt keinen Server, an den es gehen könnte.
@@ -68,7 +70,7 @@ ohnehin schon arbeitet.
 **Wozu das gut ist.** Der FSD-Job läuft nicht an, weil ein Auftrag in der Liste
 steht, sondern erst, wenn die Akte einmal im Browser geöffnet wurde. Zehn
 Aufträge heißen deshalb bisher: zehnmal anklicken, zehnmal warten, zehnmal
-zurück — jedes Mal vor dem Außendienst. Ein Klick erledigt das stattdessen für
+zurück — jedes Mal im Außendienst, in der Werkstatt. Ein Klick erledigt das für
 alle offenen Aufträge der Produktionsübersicht; wer beim ersten Auto ankommt,
 hat Jobs und Daten längst auf dem Zweitgerät.
 
