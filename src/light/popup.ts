@@ -63,6 +63,7 @@ async function zeigeUpdateHinweis(): Promise<void> {
   });
   if (neuere === null) return;
 
-  link.textContent = `Version ${neuere} verfügbar — jetzt ist ${chrome.runtime.getManifest().version} installiert`;
+  link.textContent = `Update auf v${neuere}`;
+  hinweis.title = `Installiert ist v${chrome.runtime.getManifest().version}`;
   hinweis.hidden = false;
 }

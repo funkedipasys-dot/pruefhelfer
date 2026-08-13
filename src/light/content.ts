@@ -17,10 +17,11 @@
 import { chromeArea } from '../chrome-area';
 import { DEFAULT_BAUSTEINE } from '../core/defaults';
 import { LOCAL_ID_PREFIX, deleteLocalBaustein, readLocalBausteine, saveLocalBaustein } from '../core/local';
-import { BADGE_HOST_ID, createBadge } from '../content/badge';
+import { BADGE_HOST_ID } from '../content/badge';
 import { EZ_DATE_FIELD_SELECTOR, applyEzDate, findEzDateError, readEzDateProposal } from '../content/ez-date';
 import { EZ_DATE_HOST_ID, createEzDateOverlay } from '../content/ez-date-overlay';
 import { FIELD_SELECTOR, applyInsertion } from '../content/field';
+import { FSD_AUTO_HOST_ID, createFsdAuto } from '../content/fsd-auto';
 import { HU_FAELLIG_FIELD_SELECTOR, createMonthStepper } from '../content/hu-faellig';
 import { applyMileage, findAltStandLabel, readAltStand, resolveMileageField } from '../content/mileage';
 import { MILEAGE_HOST_ID, createMileageOverlay } from '../content/mileage-overlay';
@@ -60,7 +61,10 @@ function start(): void {
   // Rückfall für eine Vorgängerin, die den Merker noch nicht kannte (Fassungen
   // bis 0.6.1). Ihre Zuhörer bleiben dann zwar, aber wenigstens steht nichts
   // doppelt auf dem Schirm.
-  for (const id of [OVERLAY_HOST_ID, MILEAGE_HOST_ID, EZ_DATE_HOST_ID, BADGE_HOST_ID]) {
+  // `BADGE_HOST_ID` bleibt in der Liste, obwohl diese Fassung kein Badge mehr
+  // anlegt: eine Vorgängerin bis 0.6.8 hat eines hinterlassen, und das muss
+  // weichen, sonst hängen Badge und Leiste übereinander.
+  for (const id of [OVERLAY_HOST_ID, MILEAGE_HOST_ID, EZ_DATE_HOST_ID, BADGE_HOST_ID, FSD_AUTO_HOST_ID]) {
     document.getElementById(id)?.remove();
   }
 
@@ -98,16 +102,19 @@ function start(): void {
 
   const huFaellig = createMonthStepper();
 
-  // Ohne die fremde Marke: diese Fassung wird öffentlich verteilt und trägt den
-  // Namen aus ihrem eigenen Manifest (siehe `build.spec.ts`).
+  // Die Leiste ersetzt das frühere passive Versions-Badge — sie trägt Fassung
+  // und Versionsnummer selbst. Ohne die fremde Marke: diese Fassung wird
+  // öffentlich verteilt und trägt den Namen aus ihrem eigenen Manifest (siehe
+  // `build.spec.ts`).
   //
-  // Steht vor den Beobachtern, weil sein Wirt in deren Ausnahmeliste gehört —
-  // erst anlegen, dann beobachten.
-  const badge = createBadge(`Prüfhelfer ${version()}`);
+  // Nicht in `hosts`: ihr Shadow ist `closed`, seine Regungen erreichen einen
+  // Beobachter am Dokument gar nicht erst. Nur der Wirt selbst taucht auf — ein
+  // einziges Mal beim Anlegen.
+  const fsdAuto = createFsdAuto({ label: `Prüfhelfer ${version()}` });
 
   // Jeder Beobachter überspringt die Wirte **aller** Overlays, nicht nur den
-  // eigenen: sonst weckt jede Regung des einen die Beobachter der anderen drei.
-  const hosts = [overlay.shadow.host, mileage.shadow.host, ezDate.shadow.host, badge.shadow.host];
+  // eigenen: sonst weckt jede Regung des einen die Beobachter der anderen zwei.
+  const hosts = [overlay.shadow.host, mileage.shadow.host, ezDate.shadow.host];
 
   const stops = [
     watchField({
@@ -148,10 +155,10 @@ function start(): void {
     // `stop()` meldet ein verbundenes Feld ab — das ist der Zuhörer am Formular,
     // um den es geht. `destroy()` räumt danach die Wirte weg.
     for (const stop of stops) stop();
+    fsdAuto.destroy();
     overlay.destroy();
     mileage.destroy();
     ezDate.destroy();
-    badge.destroy();
   };
 }
 

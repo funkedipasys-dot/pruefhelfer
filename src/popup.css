@@ -13,13 +13,39 @@ body {
   background: #fff;
 }
 
-h1 {
-  margin: 0;
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 10px 8px;
-  font-size: 14px;
   border-bottom: 1px solid #e0e0e0;
   border-left: 3px solid #da1f3d;
 }
+
+h1 {
+  margin: 0;
+  font-size: 14px;
+}
+
+/*
+ * Der Hinweis muss neben dem Namen auffallen, sonst wird er übersehen — genau
+ * das ist vorher passiert, als er als blasse Zeile darunter hing.
+ */
+.update-notice {
+  margin-left: auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #da1f3d;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.update-notice::before { content: "▲ "; }
+.update-notice:hover { background: #b3182f; }
+.update-notice[hidden] { display: none; }
 
 section[hidden] { display: none; }
 

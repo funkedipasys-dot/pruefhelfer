@@ -15,6 +15,7 @@
 
 import { HU_FAELLIG_FIELD_SELECTOR } from '../content/hu-faellig';
 import { BADGE_HOST_ID } from '../content/badge';
+import { FSD_AUTO_HOST_ID } from '../content/fsd-auto';
 import { OVERLAY_HOST_ID } from '../content/overlay';
 
 /** Was die Zuhörer am Feld von einem echten Tastendruck sehen. */
@@ -152,9 +153,25 @@ describe('Erneute Einspeisung (Extension-Reload bei offener Seite)', () => {
     await inject();
     await inject();
 
-    for (const id of [OVERLAY_HOST_ID, BADGE_HOST_ID]) {
+    for (const id of [OVERLAY_HOST_ID, FSD_AUTO_HOST_ID]) {
       expect(document.querySelectorAll(`#${id}`), id).toHaveLength(1);
     }
+  });
+
+  /**
+   * Der Wechsel vom Badge zur Leiste (2026-08-13) betrifft nicht nur den
+   * Neubau: auf einer offenen Seite hängt noch das Badge der Vorgängerin. Ohne
+   * das Abräumen stünden beide übereinander — und weil diese Fassung
+   * `createBadge()` gar nicht mehr ruft, fiele es keinem anderen Test auf.
+   */
+  it('räumt das Badge einer Vorgängerin ab', async () => {
+    const alt = document.createElement('div');
+    alt.id = BADGE_HOST_ID;
+    document.body.append(alt);
+
+    await inject();
+
+    expect(document.querySelectorAll(`#${BADGE_HOST_ID}`)).toHaveLength(0);
   });
 
   it('hinterlegt den Griff, an dem die nächste Einspeisung abräumt', async () => {

@@ -1,13 +1,16 @@
 <meta charset="utf-8" />
-<title>Prüfhelfer</title>
+<title>Prüfhelfer Lite</title>
 <link rel="stylesheet" href="popup.css" />
 
 <main>
-  <h1>Prüfhelfer</h1>
-
-  <p id="update-notice" class="update-notice" hidden>
-    <a id="update-link" href="https://github.com/funkedipasys-dot/pruefhelfer/releases/latest" target="_blank" rel="noopener">Update verfügbar</a>
-  </p>
+  <!-- Der Update-Hinweis sitzt in der Titelzeile, nicht darunter: dort unten
+       hat ihn niemand gesehen. -->
+  <header class="titlebar">
+    <h1>Prüfhelfer Lite</h1>
+    <a id="update-notice" class="update-notice" href="https://github.com/funkedipasys-dot/pruefhelfer/releases/latest" target="_blank" rel="noopener" hidden>
+      <span id="update-link">Update verfügbar</span>
+    </a>
+  </header>
 
   <p class="lead">
     Textbausteine und Kilometerstand erscheinen direkt am Feld im

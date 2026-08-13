@@ -1,9 +1,9 @@
-# Prüfhelfer
+# Prüfhelfer Lite
 
 [![CI](https://github.com/funkedipasys-dot/pruefhelfer/actions/workflows/ci.yml/badge.svg)](https://github.com/funkedipasys-dot/pruefhelfer/actions/workflows/ci.yml)
 
 Eine Chrome-Erweiterung für Prüfingenieure, die täglich im GTÜ-Produktionstool
-arbeiten. Sie nimmt vier Handgriffe ab, die sich pro Prüfung wiederholen:
+arbeiten. Sie nimmt fünf Handgriffe ab, die sich pro Prüfung wiederholen:
 
 - **Textbausteine** ins Bemerkungsfeld einsetzen — ein paar gängige Vermerke sind
   eingebaut, eigene lassen sich direkt am Feld anlegen. Der vollständige Text
@@ -16,6 +16,11 @@ arbeiten. Sie nimmt vier Handgriffe ab, die sich pro Prüfung wiederholen:
   dem Datum, das gemeint war; ein Klick trägt es ein.
 - **HU fällig monatsweise** — im Feld stehend springt `←` einen Monat zurück,
   `→` einen vor. Aus `08.2026` wird mit drei Anschlägen `05.2026`.
+- **Aufträge öffnen** — „Alle durchklicken" öffnet die Aufträge aus der Liste
+  nacheinander, mit 10 Sekunden Abstand. Wahlweise erledigt das eine Automatik
+  für neu eingehende Aufträge; sie startet **immer ausgeschaltet** und muss
+  ausdrücklich eingeschaltet werden. Details unter
+  [Aufträge öffnen](#aufträge-öffnen).
 
 **Ohne Konto, ohne Registrierung.** Alles, was du eingibst, bleibt auf dem
 Gerät — es gibt keinen Server, an den es gehen könnte.
@@ -24,9 +29,10 @@ Die **einzige** Ausnahme ist eine Versionsabfrage: beim Öffnen des Popups wird
 höchstens einmal am Tag nachgesehen, ob eine neuere Fassung veröffentlicht
 wurde. Details unter [Was sie darf](#was-sie-darf).
 
-Dass sie läuft, zeigt ein kleines weißes Kennzeichen oben mittig — mit
+Dass sie läuft, zeigt eine kleine weiße Leiste oben mittig — mit
 Fassungsnummer, damit auch die Frage „ist es der neue Stand?" beantwortet ist.
-Es fängt keinen Klick ab.
+Sie nimmt nur ihre eigenen zwei Knöpfe an; über den Rest der Seite legt sie
+sich nicht.
 
 **Website:** <https://funkedipasys-dot.github.io/pruefhelfer/> —
 **Direkt-Download der aktuellen Version:**
@@ -47,6 +53,31 @@ sind [Node.js](https://nodejs.org) ab 20 und `pnpm` (`corepack enable`):
    oben rechts der Knopf **Textbausteine**; neben dem alten Kilometerstand
    erscheinen die Übernahme-Knöpfe; neben einer Erstzulassung mit zweistelligem
    Jahr steht der Korrektur-Vorschlag.
+
+## Aufträge öffnen
+
+Beides sitzt in der Leiste oben mittig und braucht **keine** zusätzliche
+Berechtigung — geklickt wird auf derselben Seite, auf der die Erweiterung
+ohnehin schon arbeitet.
+
+**Alle durchklicken.** Ein Knopfdruck öffnet die Aufträge, die gerade in der
+Liste stehen, nacheinander mit 10 Sekunden Abstand. Der Knopf wird dabei zu
+„Abbrechen", die Leiste zählt mit (`Durchklicken: 3 / 12`). Eine Zeile, die
+inzwischen verschwunden ist, wird übersprungen statt abzubrechen.
+
+**FSD-Automatik.** Sie startet **immer** mit `FSD-Automatik: AUS` — nach jedem
+Seiten- und jedem Erweiterungs-Reload aufs Neue. Nach dem ausdrücklichen
+Einschalten merkt sie sich zuerst, welche Aufträge schon dastehen; erst einen
+danach eindeutig neu hinzugekommenen öffnet sie, und zwar nach 30 Sekunden
+einmalig.
+
+**Was beide sofort abbricht:** jede echte Maus-, Touch-, Stift- oder
+Tastaturbedienung außerhalb der Leiste. Wer wieder am Rechner sitzt, soll nicht
+danebenstehen, während ihm Aufträge aufgehen.
+
+Ein geöffneter Auftrag heißt nur, dass er geöffnet wurde. Ob FSD den Datensatz
+erzeugt hat, gehört weiterhin in die manuelle Abnahme — das nimmt dir die
+Erweiterung nicht ab und soll es auch nicht.
 
 ## Was sie darf
 
@@ -116,7 +147,7 @@ schmutzigen Beispielen. `pnpm test` führt alle mit aus.
 | Ordner | Inhalt |
 |---|---|
 | `src/core/` | Browserfreier Kern: Platzhalter-Grammatik, Einfüge-Logik, eigene Bausteine, Kilometerstand-Parser, Jahrhundert-Regel fürs EZ-Datum. **Kein `chrome.*`** — muss in Node testbar bleiben. |
-| `src/content/` | Feldbeobachtung, Panel, Kilometerstand- und Erstzulassungs-Leiste im Produktionstool. |
+| `src/content/` | Feldbeobachtung, Panel, Kilometerstand- und Erstzulassungs-Leiste, FSD-Leiste im Produktionstool. |
 | `src/ui/` | Die Bedienung, die Panel und Popup teilen. |
 | `src/light/` | Die Einstiegspunkte dieser Fassung. |
 
