@@ -241,6 +241,12 @@
     }
     .pro-cta { text-align: center; margin-top: 48px; }
     .pro-cta small { display: block; margin-top: 12px; color: var(--fg-4); font-size: 13px; }
+
+    /* Übergang von den Funktionen zur Pro-Fassung. Kein Kasten: die Karten
+       darüber tragen schon Rahmen, ein weiterer würde nur konkurrieren. */
+    .to-pro { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--divider); }
+    .to-pro h3 { font: 500 18px/26px var(--font-ui); color: var(--fg-1); margin-bottom: 6px; }
+    .to-pro p { color: var(--fg-2); max-width: 52ch; margin-bottom: 16px; }
   </style>
 </head>
 <body>
@@ -302,6 +308,12 @@
           <p>Aus „25.12.10" macht das Tool „25.12.0010" und meldet einen Fehler. Neben der Meldung erscheint ein Knopf mit dem Datum, das gemeint war. Ein Klick trägt es ein.</p>
           <div class="demo"><span class="strike">25.12.0010</span> <span class="chip-filled">25.12.2010</span></div>
         </article>
+      </div>
+
+      <div class="to-pro">
+        <h3>Bald: mit Datenbank und Serveranbindung</h3>
+        <p>Alles hier oben läuft allein auf dem Gerät — mehr geht ohne Server nicht. Mit Backend kennt der Prüfhelfer, womit dieser Prüfer tatsächlich zu tun hat, und kürzt Auswahllisten entsprechend.</p>
+        <a class="btn btn-outlined" href="#pro">Pro-Version ansehen</a>
       </div>
     </div>
   </section>
@@ -371,14 +383,14 @@
         <div class="feature">
           <span class="num">01</span>
           <h3>Besichtigungsorte eingrenzen</h3>
-          <p>Wer immer dieselben Standorte bedient, scrollt nicht länger durch alle. Die Auswahl zeigt, was für diesen Prüfer in Frage kommt.</p>
+          <p>Die Erweiterung weiß, bei welchen Besichtigungsorten der Prüfer in den letzten drei Monaten war, und zeigt nur diese. Wer immer dieselben Standorte bedient, scrollt nicht länger durch alle. Jederzeit an- und abschaltbar.</p>
           <span class="badge-planned">in Klärung</span>
         </div>
 
         <div class="feature">
           <span class="num">02</span>
-          <h3>Nachkontrollen eingrenzen</h3>
-          <p>Derselbe Gedanke für die Nachkontrollorte der Überwachungsorganisation. Immer die gleichen? Dann braucht es die vollständige Liste nicht.</p>
+          <h3>Mitbewerber eingrenzen</h3>
+          <p>Wer als Mitbewerber überhaupt in Frage kommt, ist meist regional. Die Auswahl zieht sich aus den bisherigen Daten des Ingenieurbüros und zeigt, was dort wirklich vorkommt. Auch das jederzeit an- und abschaltbar.</p>
           <span class="badge-planned">in Klärung</span>
         </div>
 
@@ -390,8 +402,8 @@
 
         <div class="feature">
           <span class="num">04</span>
-          <h3>HU-Fälligkeit und UMA-Datum im Blick</h3>
-          <p>Beide müssen innerhalb der Abschlussfrist liegen. Sichtbar, bevor der Abschluss daran scheitert — und ein Klick führt zum Feld, statt es im Formular zu suchen.</p>
+          <h3>HU-Fälligkeit und UMA-Datum in der Abschlussmaske</h3>
+          <p>Immer wieder fehlt beim Abschluss eines der beiden Daten. Bisher heißt das: raus aus der Maske, zurückscrollen, eintragen, wieder vor. Die Pro-Fassung setzt die Eingabefelder direkt dorthin, wo der Fehler auffällt — in die Abschlussmaske, kurz vor dem Druck.</p>
           <span class="badge-planned">geplant</span>
         </div>
 
