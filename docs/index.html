@@ -292,8 +292,8 @@
         </article>
         <article class="feature">
           <span class="num">05</span>
-          <h3>Aufträge öffnen — alle auf einen Klick</h3>
-          <p>Der FSD-Job entsteht erst, wenn die Akte einmal im Browser offen war. Wer morgens zehn Aufträge eingescannt hat, klickt sie bisher einzeln an, nur damit sie anlaufen. „Alle durchklicken" öffnet sie nacheinander mit 10 Sekunden Abstand: ein Klick, kurz warten, dann liegt alles auf dem Handy. Wahlweise erledigt eine Automatik dasselbe für neu eingehende Aufträge — sie startet immer ausgeschaltet, und jede echte Bedienung bricht beides sofort ab.</p>
+          <h3>FSD-Jobs automatisch erstellen</h3>
+          <p>Schluss mit dem mühsamen Durchklicken durch jeden Auftrag vor dem Außendienst. Ein Klick, und der Prüfhelfer geht durch jeden offenen Auftrag in der Produktionsübersicht und startet alle FSD-Jobs. Wer beim ersten Auto ankommt, hat Jobs und Daten längst auf dem Zweitgerät.</p>
           <div class="demo"><span class="chip-filled">Alle durchklicken</span> <span class="old">Durchklicken: 3 / 12</span></div>
         </article>
       </div>
@@ -349,20 +349,16 @@
   <section id="pro">
     <div class="wrap">
       <p class="kicker">Pro-Version</p>
-      <h2>Mehr für Prüforganisationen</h2>
-      <p style="color:var(--fg-2);max-width:52ch;margin-block:16px 40px">
-        Alles auf dieser Seite läuft ohne Server. Für Büros, die mehr brauchen,
-        ist eine Pro-Fassung mit Backend-Anbindung in Arbeit. Sie kann dadurch
-        Zusammenhänge kennen, die auf dem Gerät allein nicht bekannt sein
-        können. Daraus lassen sich Listen eingrenzen, statt sie vollständig
-        anzuzeigen.
+      <h2>Prüfhelfer mit Backend und Datenbank</h2>
+      <p style="color:var(--fg-2);max-width:52ch;margin-block:16px 12px">
+        Alles auf dieser Seite läuft ohne Server. Die Pro-Fassung bekommt einen:
+        ein eigenes Backend pro Organisation, das der Erweiterung über eine
+        eigene Schnittstelle zuarbeitet. Damit lassen sich Listen eingrenzen,
+        statt sie vollständig anzuzeigen.
       </p>
-      <p style="color:var(--fg-2);max-width:52ch;margin-block:-24px 40px">
-        <strong>Ehrlich gesagt:</strong> alles, was dafür prüferbezogene Daten
-        auswerten müsste, ist zuerst eine rechtliche Frage und erst danach eine
-        technische. Das ist mit der GTÜ zu klären, und bevor das steht, sind
-        die betreffenden Punkte hier eine Absichtserklärung — kein
-        Lieferversprechen.
+      <p style="color:var(--fg-2);max-width:52ch;margin-block:0 40px">
+        An die Erweiterung gehen dabei nur prüferbezogene Daten. Kundendaten
+        bleiben auf dem Server der Organisation.
       </p>
 
       <div class="features">
@@ -370,39 +366,43 @@
         <div class="feature">
           <span class="num">01</span>
           <h3>Besichtigungsorte eingrenzen</h3>
-          <p>Die Auswahl könnte sich auf die Orte beschränken, die für den jeweiligen Prüfer überhaupt in Frage kommen, statt jeden Ort anzubieten, den es gibt. Wer immer dieselben Standorte bedient, scrollt nicht länger durch alle.</p>
-          <span class="badge-planned">rechtlich zu klären</span>
+          <p>Wer immer dieselben Standorte bedient, scrollt nicht länger durch alle. Die Auswahl zeigt, was für diesen Prüfer in Frage kommt.</p>
+          <span class="badge-planned">in Klärung</span>
         </div>
 
         <div class="feature">
           <span class="num">02</span>
           <h3>Nachkontrollen eingrenzen</h3>
-          <p>Derselbe Gedanke für die Nachkontrollorte der Überwachungsorganisation. Wer immer die gleichen Nachkontrollen bekommt, braucht die vollständige Liste nicht.</p>
-          <span class="badge-planned">rechtlich zu klären</span>
+          <p>Derselbe Gedanke für die Nachkontrollorte der Überwachungsorganisation. Immer die gleichen? Dann braucht es die vollständige Liste nicht.</p>
+          <span class="badge-planned">in Klärung</span>
         </div>
 
         <div class="feature">
           <span class="num">03</span>
           <h3>Organisationsweite Textbausteine</h3>
-          <p>Die Bausteine werden zentral gepflegt und auf die angebundenen Geräte verteilt, statt auf jedem Rechner einzeln zu entstehen. Ein neuer Vermerk ist überall da, sobald ihn jemand einmal anlegt.</p>
+          <p>Einmal zentral gepflegt, überall da. Statt auf jedem Rechner einzeln angelegt.</p>
         </div>
 
         <div class="feature">
           <span class="num">04</span>
           <h3>HU-Fälligkeit und UMA-Datum im Blick</h3>
-          <p>Beide Daten müssen innerhalb der Abschlussfrist liegen. Denkbar ist eine Anzeige vor dem Abschluss — und wenn die Validierung doch zuschlägt, ein direkter Sprung zum betroffenen Feld, statt es im Formular zu suchen.</p>
+          <p>Beide müssen innerhalb der Abschlussfrist liegen. Sichtbar, bevor der Abschluss daran scheitert — und ein Klick führt zum Feld, statt es im Formular zu suchen.</p>
           <span class="badge-planned">geplant</span>
         </div>
 
       </div>
 
       <div class="pro-cta">
+        <p style="color:var(--fg-2);max-width:46ch;margin:0 auto 20px">
+          Gebaut wird, sobald genug Bedarf zusammenkommt. Wer sich meldet,
+          entscheidet mit, was zuerst entsteht.
+        </p>
         <a class="btn btn-primary"
-           href="mailto:funke@dipa-sys.de?subject=Pr%C3%BCfhelfer%20Pro%20Anfrage"
+           href="mailto:funke@dipa-sys.de?subject=Pr%C3%BCfhelfer%20Pro%20%E2%80%94%20Bedarf&amp;body=B%C3%BCro%3A%20%0AGew%C3%BCnschte%20Funktion%3A%20%0AAnzahl%20Pr%C3%BCfer%3A%20"
            rel="noopener">
-          Pro-Version anfragen
+          Bedarf anmelden
         </a>
-        <small>Anfragen an <a href="mailto:funke@dipa-sys.de">funke@dipa-sys.de</a>. Die Pro-Fassung setzt eine Backend-Anbindung voraus und ist nicht Teil dieses Repos.</small>
+        <small>Formlos an <a href="mailto:funke@dipa-sys.de">funke@dipa-sys.de</a>: Büro, gewünschte Funktion, Anzahl Prüfer. Zeitplan und Umfang hängen auch an offenen Fragen, die mit der GTÜ zu klären sind.</small>
       </div>
     </div>
   </section>

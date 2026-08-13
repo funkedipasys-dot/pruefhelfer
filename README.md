@@ -16,12 +16,11 @@ arbeiten. Sie nimmt fünf Handgriffe ab, die sich pro Prüfung wiederholen:
   dem Datum, das gemeint war; ein Klick trägt es ein.
 - **HU fällig monatsweise** — im Feld stehend springt `←` einen Monat zurück,
   `→` einen vor. Aus `08.2026` wird mit drei Anschlägen `05.2026`.
-- **Aufträge öffnen, alle auf einen Klick** — der FSD-Job entsteht erst, wenn
-  die Akte einmal im Browser offen war. Wer morgens zehn Aufträge eingescannt
-  hat, klickt sie bisher einzeln an, nur damit sie anlaufen. „Alle
-  durchklicken" öffnet sie nacheinander mit 10 Sekunden Abstand: ein Klick,
-  kurz warten, dann liegt alles auf dem Handy. Details unter
-  [Aufträge öffnen](#aufträge-öffnen).
+- **FSD-Jobs automatisch erstellen** — Schluss mit dem mühsamen Durchklicken
+  durch jeden Auftrag vor dem Außendienst. Ein Klick, und der Prüfhelfer geht
+  durch jeden offenen Auftrag in der Produktionsübersicht und startet alle
+  FSD-Jobs. Wer beim ersten Auto ankommt, hat Jobs und Daten längst auf dem
+  Zweitgerät. Details unter [Aufträge öffnen](#aufträge-öffnen).
 
 **Ohne Konto, ohne Registrierung.** Alles, was du eingibst, bleibt auf dem
 Gerät — es gibt keinen Server, an den es gehen könnte.
@@ -63,8 +62,10 @@ ohnehin schon arbeitet.
 
 **Wozu das gut ist.** Der FSD-Job läuft nicht an, weil ein Auftrag in der Liste
 steht, sondern erst, wenn die Akte einmal im Browser geöffnet wurde. Zehn
-eingescannte Aufträge heißen deshalb bisher: zehnmal anklicken, zehnmal warten,
-zehnmal zurück. Das ist die ganze Arbeit, die hier wegfällt.
+Aufträge heißen deshalb bisher: zehnmal anklicken, zehnmal warten, zehnmal
+zurück — jedes Mal vor dem Außendienst. Ein Klick erledigt das stattdessen für
+alle offenen Aufträge der Produktionsübersicht; wer beim ersten Auto ankommt,
+hat Jobs und Daten längst auf dem Zweitgerät.
 
 **Alle durchklicken.** Ein Knopfdruck öffnet die Aufträge, die gerade in der
 Liste stehen, nacheinander mit 10 Sekunden Abstand — damit laufen alle FSD-Jobs
