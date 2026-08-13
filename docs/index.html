@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prüfhelfer Lite – von den Machern von DiPA</title>
-  <meta name="description" content="Fünf Handgriffe weniger pro Prüfung: Textbausteine, Kilometerstand, Erstzulassung, HU-Fälligkeit und Aufträge öffnen. Ohne Konto, ohne Server, ohne Telemetrie. Von den Machern von DiPA.">
+  <meta name="description" content="Sechs Handgriffe weniger pro Prüfung: FSD-Jobs auf einen Klick, Textbausteine, Kilometerstand, HU-Fälligkeit per Pfeiltaste, Erstzulassung. Ohne Konto, ohne Server, ohne Telemetrie. Von den Machern von DiPA.">
   <link rel="canonical" href="https://funkedipasys-dot.github.io/pruefhelfer/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' rx='13' fill='%23126b66'/%3E%3Ccircle cx='24' cy='24' r='11.4' fill='none' stroke='%23fff' stroke-width='4.2' stroke-dasharray='56 16' stroke-dashoffset='-31'/%3E%3Cpath d='M17.5 24.3 L22 28.6 L31 18.5' fill='none' stroke='%2345c2b4' stroke-width='3.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" type="image/svg+xml">
   <style>
@@ -252,7 +252,7 @@
         <h1>Prüfhelfer Lite</h1>
       </div>
       <p class="byline">von den Machern von <a href="https://dipa-sys.de" rel="noopener">DiPA</a> — UVV-Prüfungen endlich digital, mit QR-Code.</p>
-      <p class="headline">Fünf Handgriffe weniger pro Prüfung.</p>
+      <p class="headline">Sechs Handgriffe weniger pro Prüfung.</p>
       <p class="lead">Eine Chrome-Erweiterung für Prüfingenieure, die täglich im GTÜ-Produktionstool arbeiten. Sie nimmt die kleinen Wiederholungen ab, die sich über den Tag summieren. Ohne Konto, ohne Server, ohne Telemetrie: alles bleibt auf dem Gerät.</p>
       <div class="cta-row">
         <a class="btn btn-primary" href="https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip">Aktuelle Version herunterladen</a>
@@ -274,27 +274,33 @@
         </article>
         <article class="feature">
           <span class="num">02</span>
+          <h3>FSD-Jobs automatisch erstellen</h3>
+          <p>Schluss mit dem mühsamen Durchklicken durch jeden Auftrag vor dem Außendienst. Ein Klick, und der Prüfhelfer geht durch jeden offenen Auftrag in der Produktionsübersicht und startet alle FSD-Jobs. Wer beim ersten Auto ankommt, hat Jobs und Daten längst auf dem Zweitgerät.</p>
+          <div class="demo"><span class="chip-filled">Alle durchklicken</span> <span class="old">Durchklicken: 3 / 12</span></div>
+        </article>
+        <article class="feature">
+          <span class="num">03</span>
           <h3>Kilometerstand übernehmen</h3>
           <p>Im Dialog „Wegstreckenzähler ändern" steht der alte Stand direkt unter dem leeren Pflichtfeld. Ein Klick trägt ihn ein, wahlweise mit Aufschlag für die Strecke bis zur Prüfung.</p>
           <div class="demo"><span class="old">Alter Stand: 156.223 km</span> <span class="chip-filled">Übernehmen</span> <span class="chip">+2</span> <span class="chip">+5</span></div>
         </article>
         <article class="feature">
-          <span class="num">03</span>
+          <span class="num">04</span>
+          <h3>Mit Pfeiltasten durch die Monate springen</h3>
+          <p>Im Feld „HU fällig" stehend springt <kbd>←</kbd> einen Monat zurück, <kbd>→</kbd> einen vor. Aus „08.2026" wird mit drei Anschlägen „05.2026" — kein Zahlendreher beim Tippen.</p>
+          <div class="demo"><kbd>←</kbd> <kbd>←</kbd> <kbd>←</kbd> <span class="old">08.2026 wird zu</span> <strong>05.2026</strong></div>
+        </article>
+        <article class="feature">
+          <span class="num">05</span>
           <h3>Erstzulassung mit zweistelligem Jahr</h3>
           <p>Aus „25.12.10" macht das Tool „25.12.0010" und meldet einen Fehler. Neben der Meldung erscheint ein Knopf mit dem Datum, das gemeint war. Ein Klick trägt es ein.</p>
           <div class="demo"><span class="strike">25.12.0010</span> <span class="chip-filled">25.12.2010</span></div>
         </article>
         <article class="feature">
-          <span class="num">04</span>
-          <h3>HU fällig monatsweise</h3>
-          <p>Im Feld stehend springt ein Tastendruck einen Monat zurück oder vor. Aus „08.2026" wird mit drei Anschlägen „05.2026".</p>
-          <div class="demo"><kbd>←</kbd> <kbd>←</kbd> <kbd>←</kbd> <span class="old">08.2026 wird zu</span> <strong>05.2026</strong></div>
-        </article>
-        <article class="feature">
-          <span class="num">05</span>
-          <h3>FSD-Jobs automatisch erstellen</h3>
-          <p>Schluss mit dem mühsamen Durchklicken durch jeden Auftrag vor dem Außendienst. Ein Klick, und der Prüfhelfer geht durch jeden offenen Auftrag in der Produktionsübersicht und startet alle FSD-Jobs. Wer beim ersten Auto ankommt, hat Jobs und Daten längst auf dem Zweitgerät.</p>
-          <div class="demo"><span class="chip-filled">Alle durchklicken</span> <span class="old">Durchklicken: 3 / 12</span></div>
+          <span class="num">06</span>
+          <h3>FSD-Automatik für unterwegs</h3>
+          <p>Der Prüfer ist längst am Fahrzeug, der Laptop bleibt im Auto. Er scannt einen Fahrzeugschein, der Auftrag läuft auf — und der Prüfhelfer öffnet ihn und startet den FSD-Job, ohne dass jemand am Rechner sitzt. Die Automatik startet immer ausgeschaltet, und jede echte Bedienung am Laptop schaltet sie sofort wieder ab.</p>
+          <div class="demo"><span class="chip-filled">FSD-Automatik: BEREIT</span> <span class="old">Neuer Auftrag in 27 s</span></div>
         </article>
       </div>
     </div>

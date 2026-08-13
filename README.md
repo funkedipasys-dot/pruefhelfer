@@ -3,24 +3,29 @@
 [![CI](https://github.com/funkedipasys-dot/pruefhelfer/actions/workflows/ci.yml/badge.svg)](https://github.com/funkedipasys-dot/pruefhelfer/actions/workflows/ci.yml)
 
 Eine Chrome-Erweiterung für Prüfingenieure, die täglich im GTÜ-Produktionstool
-arbeiten. Sie nimmt fünf Handgriffe ab, die sich pro Prüfung wiederholen:
+arbeiten. Sie nimmt sechs Handgriffe ab, die sich pro Prüfung wiederholen:
 
 - **Textbausteine** ins Bemerkungsfeld einsetzen — ein paar gängige Vermerke sind
   eingebaut, eigene lassen sich direkt am Feld anlegen. Der vollständige Text
   steht vor dem Einfügen da, nicht erst danach.
-- **Kilometerstand übernehmen** — im Dialog „Wegstreckenzähler ändern" steht der
-  alte Stand direkt unter dem leeren Pflichtfeld. Ein Klick trägt ihn ein,
-  wahlweise mit `+2` oder `+5` für die Kilometer zwischen Ablesen und Prüfung.
-- **Erstzulassung mit zweistelligem Jahr** — `25.12.10` wird im Tool zu
-  `25.12.0010` und damit zum Fehler. Neben der Meldung erscheint ein Knopf mit
-  dem Datum, das gemeint war; ein Klick trägt es ein.
-- **HU fällig monatsweise** — im Feld stehend springt `←` einen Monat zurück,
-  `→` einen vor. Aus `08.2026` wird mit drei Anschlägen `05.2026`.
 - **FSD-Jobs automatisch erstellen** — Schluss mit dem mühsamen Durchklicken
   durch jeden Auftrag vor dem Außendienst. Ein Klick, und der Prüfhelfer geht
   durch jeden offenen Auftrag in der Produktionsübersicht und startet alle
   FSD-Jobs. Wer beim ersten Auto ankommt, hat Jobs und Daten längst auf dem
   Zweitgerät. Details unter [Aufträge öffnen](#aufträge-öffnen).
+- **Kilometerstand übernehmen** — im Dialog „Wegstreckenzähler ändern" steht der
+  alte Stand direkt unter dem leeren Pflichtfeld. Ein Klick trägt ihn ein,
+  wahlweise mit `+2` oder `+5` für die Kilometer zwischen Ablesen und Prüfung.
+- **Mit Pfeiltasten durch die Monate springen** — im Feld „HU fällig" stehend
+  springt `←` einen Monat zurück, `→` einen vor. Aus `08.2026` wird mit drei
+  Anschlägen `05.2026`, ohne Zahlendreher beim Tippen.
+- **Erstzulassung mit zweistelligem Jahr** — `25.12.10` wird im Tool zu
+  `25.12.0010` und damit zum Fehler. Neben der Meldung erscheint ein Knopf mit
+  dem Datum, das gemeint war; ein Klick trägt es ein.
+- **FSD-Automatik für unterwegs** — der Prüfer ist längst am Fahrzeug, der
+  Laptop bleibt im Auto. Er scannt einen Fahrzeugschein, der Auftrag läuft auf,
+  und der Prüfhelfer öffnet ihn und startet den FSD-Job, ohne dass jemand am
+  Rechner sitzt. Startet **immer ausgeschaltet**.
 
 **Ohne Konto, ohne Registrierung.** Alles, was du eingibst, bleibt auf dem
 Gerät — es gibt keinen Server, an den es gehen könnte.
@@ -73,11 +78,15 @@ an, und kurz darauf liegen die Daten auf dem Handy. Der Knopf wird dabei zu
 „Abbrechen", die Leiste zählt mit (`Durchklicken: 3 / 12`). Eine Zeile, die
 inzwischen verschwunden ist, wird übersprungen statt abzubrechen.
 
-**FSD-Automatik.** Sie startet **immer** mit `FSD-Automatik: AUS` — nach jedem
-Seiten- und jedem Erweiterungs-Reload aufs Neue. Nach dem ausdrücklichen
-Einschalten merkt sie sich zuerst, welche Aufträge schon dastehen; erst einen
-danach eindeutig neu hinzugekommenen öffnet sie, und zwar nach 30 Sekunden
-einmalig.
+**FSD-Automatik.** Für den Fall, dass der Laptop im Auto bleibt: der Prüfer
+scannt am Fahrzeug einen Fahrzeugschein, der Auftrag läuft in der Liste auf, und
+die Erweiterung öffnet ihn von selbst — der FSD-Job startet, ohne dass jemand
+am Rechner sitzt.
+
+Sie startet **immer** mit `FSD-Automatik: AUS` — nach jedem Seiten- und jedem
+Erweiterungs-Reload aufs Neue. Nach dem ausdrücklichen Einschalten merkt sie
+sich zuerst, welche Aufträge schon dastehen; erst einen danach eindeutig neu
+hinzugekommenen öffnet sie, und zwar nach 30 Sekunden einmalig.
 
 **Was beide sofort abbricht:** jede echte Maus-, Touch-, Stift- oder
 Tastaturbedienung außerhalb der Leiste. Wer wieder am Rechner sitzt, soll nicht
