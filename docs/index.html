@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Prüfhelfer – Chrome-Erweiterung für Prüfingenieure</title>
-  <meta name="description" content="Vier Handgriffe weniger pro Prüfung: Textbausteine, Kilometerstand, Erstzulassung und HU-Fälligkeit schneller eintragen. Ohne Konto, ohne Server, ohne Telemetrie.">
+  <title>Prüfhelfer Lite – von den Machern von DiPA</title>
+  <meta name="description" content="Fünf Handgriffe weniger pro Prüfung: Textbausteine, Kilometerstand, Erstzulassung, HU-Fälligkeit und Aufträge öffnen. Ohne Konto, ohne Server, ohne Telemetrie. Von den Machern von DiPA.">
   <link rel="canonical" href="https://funkedipasys-dot.github.io/pruefhelfer/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' rx='13' fill='%23126b66'/%3E%3Ccircle cx='24' cy='24' r='11.4' fill='none' stroke='%23fff' stroke-width='4.2' stroke-dasharray='56 16' stroke-dashoffset='-31'/%3E%3Cpath d='M17.5 24.3 L22 28.6 L31 18.5' fill='none' stroke='%2345c2b4' stroke-width='3.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" type="image/svg+xml">
   <style>
@@ -64,6 +64,11 @@
     }
     .brand svg { display: block; }
     .brand h1 { font: 500 22px/28px var(--font-ui); color: var(--fg-1); }
+    .hero .byline {
+      font: 400 14px/20px var(--font-ui);
+      color: var(--fg-4);
+      animation: rise .3s .03s var(--ease) both;
+    }
     .hero .headline {
       font: 400 clamp(32px, 5.5vw, 45px)/1.18 var(--font-ui);
       letter-spacing: 0;
@@ -88,7 +93,7 @@
     .btn-outlined:hover { background: var(--petrol-95); color: var(--petrol-30); }
     @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
     @media (prefers-reduced-motion: reduce) {
-      .brand, .hero .headline, .hero .lead, .cta-row { animation: none; }
+      .brand, .hero .byline, .hero .headline, .hero .lead, .cta-row { animation: none; }
       html { scroll-behavior: auto; }
       * { transition-duration: .001ms !important; }
     }
@@ -222,6 +227,10 @@
 
     .badge-planned {
       display: inline-block;
+      /* .feature ist flex-column: ohne align-self streckt sich das Pill auf
+         volle Kartenbreite und sieht aus wie ein leeres Eingabefeld. */
+      align-self: flex-start;
+      margin-top: auto;
       padding: 2px 10px;
       border-radius: 9999px;
       background: var(--surface-low);
@@ -229,7 +238,6 @@
       color: var(--fg-4);
       font: 500 11px/16px var(--font-ui);
       letter-spacing: .3px;
-      margin-top: 8px;
     }
     .pro-cta { text-align: center; margin-top: 48px; }
     .pro-cta small { display: block; margin-top: 12px; color: var(--fg-4); font-size: 13px; }
@@ -241,9 +249,10 @@
     <div class="wrap">
       <div class="brand">
         <svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><rect width="48" height="48" rx="13" fill="#126b66"/><circle cx="24" cy="24" r="11.4" fill="none" stroke="#fff" stroke-width="4.2" stroke-dasharray="56 16" stroke-dashoffset="-31"/><path d="M17.5 24.3 L22 28.6 L31 18.5" fill="none" stroke="#45c2b4" stroke-width="3.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <h1>Prüfhelfer</h1>
+        <h1>Prüfhelfer Lite</h1>
       </div>
-      <p class="headline">Vier Handgriffe weniger pro Prüfung.</p>
+      <p class="byline">von den Machern von <a href="https://dipa-sys.de" rel="noopener">DiPA</a> — UVV-Prüfungen endlich digital, mit QR-Code.</p>
+      <p class="headline">Fünf Handgriffe weniger pro Prüfung.</p>
       <p class="lead">Eine Chrome-Erweiterung für Prüfingenieure, die täglich im GTÜ-Produktionstool arbeiten. Sie nimmt die kleinen Wiederholungen ab, die sich über den Tag summieren. Ohne Konto, ohne Server, ohne Telemetrie: alles bleibt auf dem Gerät.</p>
       <div class="cta-row">
         <a class="btn btn-primary" href="https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip">Aktuelle Version herunterladen</a>
@@ -280,6 +289,12 @@
           <h3>HU fällig monatsweise</h3>
           <p>Im Feld stehend springt ein Tastendruck einen Monat zurück oder vor. Aus „08.2026" wird mit drei Anschlägen „05.2026".</p>
           <div class="demo"><kbd>←</kbd> <kbd>←</kbd> <kbd>←</kbd> <span class="old">08.2026 wird zu</span> <strong>05.2026</strong></div>
+        </article>
+        <article class="feature">
+          <span class="num">05</span>
+          <h3>Aufträge öffnen — alle auf einen Klick</h3>
+          <p>Der FSD-Job entsteht erst, wenn die Akte einmal im Browser offen war. Wer morgens zehn Aufträge eingescannt hat, klickt sie bisher einzeln an, nur damit sie anlaufen. „Alle durchklicken" öffnet sie nacheinander mit 10 Sekunden Abstand: ein Klick, kurz warten, dann liegt alles auf dem Handy. Wahlweise erledigt eine Automatik dasselbe für neu eingehende Aufträge — sie startet immer ausgeschaltet, und jede echte Bedienung bricht beides sofort ab.</p>
+          <div class="demo"><span class="chip-filled">Alle durchklicken</span> <span class="old">Durchklicken: 3 / 12</span></div>
         </article>
       </div>
     </div>
@@ -318,7 +333,7 @@
         <li><span>„Entpackte Erweiterung laden" wählen und den entpackten Ordner auswählen.</span></li>
       </ol>
       <p class="buildline"><strong>Oder selbst bauen:</strong> <a href="https://github.com/funkedipasys-dot/pruefhelfer">Repo klonen</a>, <code>pnpm install &amp;&amp; pnpm package</code> ausführen und den Ordner <code>dist/</code> laden. Was im Zip steckt, ist genau dieses Build-Ergebnis.</p>
-      <p class="hint">Dass sie läuft, zeigt ein kleines weißes Kennzeichen oben mittig im Produktionstool, mit Fassungsnummer. Es fängt keinen Klick ab.</p>
+      <p class="hint">Dass sie läuft, zeigt eine kleine weiße Leiste oben mittig im Produktionstool, mit Fassungsnummer. Sie nimmt nur ihre eigenen zwei Knöpfe an; über den Rest der Seite legt sie sich nicht.</p>
     </div>
   </section>
 
@@ -336,35 +351,46 @@
       <p class="kicker">Pro-Version</p>
       <h2>Mehr für Prüforganisationen</h2>
       <p style="color:var(--fg-2);max-width:52ch;margin-block:16px 40px">
-        Für Büros mit GINO-Anbindung sind erweiterte Funktionen verfügbar:
-        zentral verwaltet, automatisch synchronisiert.
+        Alles auf dieser Seite läuft ohne Server. Für Büros, die mehr brauchen,
+        ist eine Pro-Fassung mit Backend-Anbindung in Arbeit. Sie kann dadurch
+        Zusammenhänge kennen, die auf dem Gerät allein nicht bekannt sein
+        können. Daraus lassen sich Listen eingrenzen, statt sie vollständig
+        anzuzeigen.
+      </p>
+      <p style="color:var(--fg-2);max-width:52ch;margin-block:-24px 40px">
+        <strong>Ehrlich gesagt:</strong> alles, was dafür prüferbezogene Daten
+        auswerten müsste, ist zuerst eine rechtliche Frage und erst danach eine
+        technische. Das ist mit der GTÜ zu klären, und bevor das steht, sind
+        die betreffenden Punkte hier eine Absichtserklärung — kein
+        Lieferversprechen.
       </p>
 
       <div class="features">
 
         <div class="feature">
           <span class="num">01</span>
-          <h3>Zentrale Textbausteine</h3>
-          <p>Der Admin pflegt die Bausteine in GINO, alle gekoppelten Geräte synchronisieren automatisch.</p>
+          <h3>Besichtigungsorte eingrenzen</h3>
+          <p>Die Auswahl könnte sich auf die Orte beschränken, die für den jeweiligen Prüfer überhaupt in Frage kommen, statt jeden Ort anzubieten, den es gibt. Wer immer dieselben Standorte bedient, scrollt nicht länger durch alle.</p>
+          <span class="badge-planned">rechtlich zu klären</span>
         </div>
 
         <div class="feature">
           <span class="num">02</span>
-          <h3>FSD-Automatik</h3>
-          <p>Neu eingehende Aufträge öffnen sich nach einstellbarer Wartezeit automatisch. Ein-/Ausschalter, deaktiviert sich bei manueller Bedienung.</p>
+          <h3>Nachkontrollen eingrenzen</h3>
+          <p>Derselbe Gedanke für die Nachkontrollorte der Überwachungsorganisation. Wer immer die gleichen Nachkontrollen bekommt, braucht die vollständige Liste nicht.</p>
+          <span class="badge-planned">rechtlich zu klären</span>
         </div>
 
         <div class="feature">
           <span class="num">03</span>
-          <h3>Standort-Filterung</h3>
-          <p>Nur die Prüfstandorte des jeweiligen Prüfers werden angezeigt, kein Rauschen durch fremde Standorte.</p>
-          <span class="badge-planned">geplant</span>
+          <h3>Organisationsweite Textbausteine</h3>
+          <p>Die Bausteine werden zentral gepflegt und auf die angebundenen Geräte verteilt, statt auf jedem Rechner einzeln zu entstehen. Ein neuer Vermerk ist überall da, sobald ihn jemand einmal anlegt.</p>
         </div>
 
         <div class="feature">
           <span class="num">04</span>
-          <h3>Plaketten-Schnellerfassung</h3>
-          <p>Plaketten-Verbrauch per Klick erfassen, datenschutzkonform, läuft ins Plakettenpool-Tool.</p>
+          <h3>HU-Fälligkeit und UMA-Datum im Blick</h3>
+          <p>Beide Daten müssen innerhalb der Abschlussfrist liegen. Denkbar ist eine Anzeige vor dem Abschluss — und wenn die Validierung doch zuschlägt, ein direkter Sprung zum betroffenen Feld, statt es im Formular zu suchen.</p>
           <span class="badge-planned">geplant</span>
         </div>
 
@@ -372,17 +398,20 @@
 
       <div class="pro-cta">
         <a class="btn btn-primary"
-           href="mailto:c.funke@gtue-funke.de?subject=Pr%C3%BCfhelfer%20Pro%20Anfrage"
+           href="mailto:funke@dipa-sys.de?subject=Pr%C3%BCfhelfer%20Pro%20Anfrage"
            rel="noopener">
           Pro-Version anfragen
         </a>
-        <small>Die Pro-Version setzt eine GINO-Anbindung voraus.</small>
+        <small>Anfragen an <a href="mailto:funke@dipa-sys.de">funke@dipa-sys.de</a>. Die Pro-Fassung setzt eine Backend-Anbindung voraus und ist nicht Teil dieses Repos.</small>
       </div>
     </div>
   </section>
 
   <footer>
     <div class="wrap">
+      <h3>Von den Machern von DiPA</h3>
+      <p>Prüfhelfer Lite entsteht bei denselben Leuten wie <a href="https://dipa-sys.de" rel="noopener">DiPA</a>: UVV-Prüfungen endlich digital, mit QR-Code am Gerät statt Zettelwirtschaft. Beides von jemandem gebaut, der die Arbeit selbst macht. Wer die Pro-Fassung mit Backend-Anbindung möchte, schreibt an <a href="mailto:funke@dipa-sys.de?subject=Pr%C3%BCfhelfer%20Pro%20Anfrage">funke@dipa-sys.de</a>.</p>
+
       <h3>Kein Produkt der GTÜ</h3>
       <p>Dieses Projekt steht in keiner Verbindung zur GTÜ Gesellschaft für Technische Überwachung mbH und wird von ihr weder herausgegeben noch unterstützt. „GTÜ" ist hier ausschließlich als Angabe darüber genannt, in welcher Anwendung die Erweiterung arbeitet. Ob der Einsatz einer Erweiterung mit den Nutzungsbedingungen des jeweiligen Prüftools vereinbar ist, muss jeder Anwender für sich klären.</p>
 

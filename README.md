@@ -16,10 +16,11 @@ arbeiten. Sie nimmt fünf Handgriffe ab, die sich pro Prüfung wiederholen:
   dem Datum, das gemeint war; ein Klick trägt es ein.
 - **HU fällig monatsweise** — im Feld stehend springt `←` einen Monat zurück,
   `→` einen vor. Aus `08.2026` wird mit drei Anschlägen `05.2026`.
-- **Aufträge öffnen** — „Alle durchklicken" öffnet die Aufträge aus der Liste
-  nacheinander, mit 10 Sekunden Abstand. Wahlweise erledigt das eine Automatik
-  für neu eingehende Aufträge; sie startet **immer ausgeschaltet** und muss
-  ausdrücklich eingeschaltet werden. Details unter
+- **Aufträge öffnen, alle auf einen Klick** — der FSD-Job entsteht erst, wenn
+  die Akte einmal im Browser offen war. Wer morgens zehn Aufträge eingescannt
+  hat, klickt sie bisher einzeln an, nur damit sie anlaufen. „Alle
+  durchklicken" öffnet sie nacheinander mit 10 Sekunden Abstand: ein Klick,
+  kurz warten, dann liegt alles auf dem Handy. Details unter
   [Aufträge öffnen](#aufträge-öffnen).
 
 **Ohne Konto, ohne Registrierung.** Alles, was du eingibst, bleibt auf dem
@@ -60,8 +61,14 @@ Beides sitzt in der Leiste oben mittig und braucht **keine** zusätzliche
 Berechtigung — geklickt wird auf derselben Seite, auf der die Erweiterung
 ohnehin schon arbeitet.
 
+**Wozu das gut ist.** Der FSD-Job läuft nicht an, weil ein Auftrag in der Liste
+steht, sondern erst, wenn die Akte einmal im Browser geöffnet wurde. Zehn
+eingescannte Aufträge heißen deshalb bisher: zehnmal anklicken, zehnmal warten,
+zehnmal zurück. Das ist die ganze Arbeit, die hier wegfällt.
+
 **Alle durchklicken.** Ein Knopfdruck öffnet die Aufträge, die gerade in der
-Liste stehen, nacheinander mit 10 Sekunden Abstand. Der Knopf wird dabei zu
+Liste stehen, nacheinander mit 10 Sekunden Abstand — damit laufen alle FSD-Jobs
+an, und kurz darauf liegen die Daten auf dem Handy. Der Knopf wird dabei zu
 „Abbrechen", die Leiste zählt mit (`Durchklicken: 3 / 12`). Eine Zeile, die
 inzwischen verschwunden ist, wird übersprungen statt abzubrechen.
 
