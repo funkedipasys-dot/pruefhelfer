@@ -54,7 +54,8 @@ section[hidden] { display: none; }
 #pairing label { display: block; padding: 0 8px; }
 #pairing .name { display: block; margin-bottom: 2px; color: #565656; }
 
-#pasted {
+#pasted,
+#pairing input {
   font: 12px/1.4 ui-monospace, monospace;
   width: 100%;
   box-sizing: border-box;
@@ -65,7 +66,8 @@ section[hidden] { display: none; }
   resize: vertical;
 }
 
-#pasted:focus { outline: none; border-color: #da1f3d; background: #fff; }
+#pasted:focus,
+#pairing input:focus { outline: none; border-color: #da1f3d; background: #fff; }
 
 .target { margin: 8px; font-weight: 600; }
 .target.bad { font-weight: 400; color: #da1f3d; }
