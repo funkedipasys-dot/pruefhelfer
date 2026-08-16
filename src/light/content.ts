@@ -17,10 +17,13 @@
 import { chromeArea } from '../chrome-area';
 import { DEFAULT_BAUSTEINE } from '../core/defaults';
 import { LOCAL_ID_PREFIX, deleteLocalBaustein, readLocalBausteine, saveLocalBaustein } from '../core/local';
+import { ABSCHLUSS_DIALOG_SELECTOR, angemahnteFelder } from '../content/abschluss';
+import { ABSCHLUSS_HOST_ID, createAbschlussOverlay } from '../content/abschluss-overlay';
 import { BADGE_HOST_ID } from '../content/badge';
+import { hideWhileDialogOpen } from '../content/dialog';
 import { EZ_DATE_FIELD_SELECTOR, applyEzDate, findEzDateError, readEzDateProposal } from '../content/ez-date';
 import { EZ_DATE_HOST_ID, createEzDateOverlay } from '../content/ez-date-overlay';
-import { FIELD_SELECTOR, applyInsertion } from '../content/field';
+import { FIELD_SELECTOR, applyInsertion, writeFieldValue } from '../content/field';
 import { FSD_AUTO_HOST_ID, createFsdAuto } from '../content/fsd-auto';
 import { HU_FAELLIG_FIELD_SELECTOR, createMonthStepper } from '../content/hu-faellig';
 import { applyMileage, findAltStandLabel, readAltStand, resolveMileageField } from '../content/mileage';
@@ -64,7 +67,8 @@ function start(): void {
   // `BADGE_HOST_ID` bleibt in der Liste, obwohl diese Fassung kein Badge mehr
   // anlegt: eine Vorgängerin bis 0.6.8 hat eines hinterlassen, und das muss
   // weichen, sonst hängen Badge und Leiste übereinander.
-  for (const id of [OVERLAY_HOST_ID, MILEAGE_HOST_ID, EZ_DATE_HOST_ID, BADGE_HOST_ID, FSD_AUTO_HOST_ID]) {
+  const ids = [OVERLAY_HOST_ID, MILEAGE_HOST_ID, EZ_DATE_HOST_ID, BADGE_HOST_ID, FSD_AUTO_HOST_ID, ABSCHLUSS_HOST_ID];
+  for (const id of ids) {
     document.getElementById(id)?.remove();
   }
 
@@ -112,11 +116,21 @@ function start(): void {
   // einziges Mal beim Anlegen.
   const fsdAuto = createFsdAuto({ label: `Prüfhelfer ${version()}` });
 
+  // Die einzige Leiste, die bei offenem Dialog erscheinen *soll* — sie steht
+  // deshalb nicht in der Liste von `hideWhileDialogOpen`.
+  const abschluss = createAbschlussOverlay({
+    read: (dialog) => angemahnteFelder(dialog),
+    write: writeFieldValue,
+  });
+
   // Jeder Beobachter überspringt die Wirte **aller** Overlays, nicht nur den
-  // eigenen: sonst weckt jede Regung des einen die Beobachter der anderen zwei.
-  const hosts = [overlay.shadow.host, mileage.shadow.host, ezDate.shadow.host];
+  // eigenen: sonst weckt jede Regung des einen die Beobachter der anderen drei.
+  const hosts = [overlay.shadow.host, mileage.shadow.host, ezDate.shadow.host, abschluss.shadow.host];
 
   const stops = [
+    // Solange ein Dialog offen ist, ist alles hier Bedienung auf einem Bild:
+    // die Felder darunter liegen unter dem Backdrop.
+    hideWhileDialogOpen([overlay.shadow, ezDate.shadow, fsdAuto.shadow]),
     watchField({
       root: document,
       selector: FIELD_SELECTOR,
@@ -145,6 +159,13 @@ function start(): void {
       onAttach: (field) => huFaellig.attach(field),
       onDetach: () => huFaellig.detach(),
     }),
+    watchField<HTMLElement>({
+      root: document,
+      selector: ABSCHLUSS_DIALOG_SELECTOR,
+      ignoreWithin: hosts,
+      onAttach: (dialog) => abschluss.attach(dialog),
+      onDetach: () => abschluss.detach(),
+    }),
   ];
 
   holder[TEARDOWN] = () => {
@@ -159,6 +180,7 @@ function start(): void {
     overlay.destroy();
     mileage.destroy();
     ezDate.destroy();
+    abschluss.destroy();
   };
 }
 
