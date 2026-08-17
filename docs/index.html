@@ -245,6 +245,16 @@
     .pro-cta { text-align: center; margin-top: 48px; }
     .pro-cta small { display: block; margin-top: 12px; color: var(--fg-4); font-size: 13px; }
 
+    /* ---------- Erklärvideo ---------- */
+    /* ponytail: selbst gehostetes <video>, kein YouTube — spart Cookie-Banner und Drittanbieter */
+    .explainer {
+      display: block; width: 100%; height: auto; margin-top: 28px;
+      background: #000;
+      border: 1px solid var(--outline-variant);
+      border-radius: 12px;
+      box-shadow: var(--elevation-1);
+    }
+
     /* Übergang von den Funktionen zur Pro-Fassung. Kein Kasten: die Karten
        darüber tragen schon Rahmen, ein weiterer würde nur konkurrieren. */
     .to-pro { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--divider); }
@@ -269,6 +279,23 @@
       </div>
     </div>
   </header>
+
+  <section id="video">
+    <div class="wrap">
+      <p class="kicker">Kurz gezeigt</p>
+      <h2>So sieht das im Alltag aus</h2>
+      <p>Ein Durchgang durch die Funktionen im Produktionstool — mit Ton, gut achteinhalb Minuten.</p>
+      <video class="explainer" controls preload="none" playsinline
+             width="1280" height="720"
+             poster="videos/erklaervideo-poster.jpg">
+        <!-- ponytail: nur MP4. Eine WebM-Quelle waere ~30 % kleiner, aber ohne
+             die Datei ergaebe die <source>-Zeile bei jedem Aufruf einen 404. -->
+        <source src="videos/erklaervideo.mp4" type="video/mp4">
+        <p>Ihr Browser kann dieses Video nicht abspielen.
+          <a href="videos/erklaervideo.mp4">Direkt herunterladen</a>.</p>
+      </video>
+    </div>
+  </section>
 
   <section id="funktionen">
     <div class="wrap">
