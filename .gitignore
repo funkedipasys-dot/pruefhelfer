@@ -1,3 +1,6 @@
 node_modules/
 dist/
 *.zip
+# Arbeitsanweisung für Claude-Sessions. Nennt lokale Pfade, das private
+# pro-Repo und die Mirror-Architektur — gehört nicht ins öffentliche Repo.
+CLAUDE.md
