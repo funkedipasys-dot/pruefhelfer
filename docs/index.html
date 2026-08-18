@@ -242,8 +242,6 @@
       font: 500 11px/16px var(--font-ui);
       letter-spacing: .3px;
     }
-    .pro-cta { text-align: center; margin-top: 48px; }
-    .pro-cta small { display: block; margin-top: 12px; color: var(--fg-4); font-size: 13px; }
 
     /* ---------- Erklärvideo ---------- */
     /* ponytail: selbst gehostetes <video>, kein YouTube — spart Cookie-Banner und Drittanbieter */
@@ -446,24 +444,11 @@
 
       </div>
 
-      <!-- Ein Brevo-Formular für diese Anmeldung ist gebaut und getestet
-           (Liste 8 „Prüfhelfer Pro – Interesse", Commit 51c5db7). Bewusst
-           wieder ausgebaut: solange die Anfragen per Mail zu bewältigen sind,
-           lohnt der Drittanbieter nicht. Zurückholen, sobald es zu viele
-           werden. -->
-      <div class="pro-cta">
-        <p style="color:var(--fg-2);max-width:46ch;margin:0 auto 20px">
-          Die Pro-Fassung ist fertig entwickelt. Offen ist, ob das Backend
-          dahinter ausgerollt wird. Wer Interesse anmeldet, hilft dabei, den
-          Bedarf zu belegen.
-        </p>
-        <a class="btn btn-primary"
-           href="mailto:funke@dipa-sys.de?subject=Pr%C3%BCfhelfer%20Pro%20%E2%80%94%20Interesse&amp;body=B%C3%BCronummer%3A%20%0AWichtigste%20Funktion%3A%20%0AAnzahl%20Pr%C3%BCfer%3A%20"
-           rel="noopener">
-          Interesse anmelden
-        </a>
-        <small>Formlos an <a href="mailto:funke@dipa-sys.de">funke@dipa-sys.de</a>: Büronummer, wichtigste Funktion, Anzahl Prüfer.</small>
-      </div>
+      <!-- Kein CTA an dieser Stelle, bewusst. Der Nebensatz im Footer
+           ("Von den Machern von DiPA") reicht, solange die Nachfrage klein
+           ist. Ein fertiges Brevo-Formular dafür liegt in Commit 51c5db7
+           (Liste 8 „Prüfhelfer Pro – Interesse"), der mailto-Button in
+           71f9407. Zurückholen, sobald die Mail-Anfragen zu viele werden. -->
     </div>
   </section>
 
