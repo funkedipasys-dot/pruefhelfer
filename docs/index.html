@@ -258,6 +258,33 @@
     .to-pro { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--divider); }
     .to-pro h3 { font: 500 18px/26px var(--font-ui); color: var(--fg-1); margin-bottom: 6px; }
     .to-pro p { color: var(--fg-2); max-width: 52ch; margin-bottom: 16px; }
+
+    /* Download hinter den Update-News. Der Link liegt öffentlich auf GitHub,
+       die Schwelle ist eine Bitte und keine Sperre. */
+    .dl-lead { color: var(--fg-2); max-width: 56ch; margin-bottom: 24px; }
+    .dl-card { max-width: 560px; padding: 24px; background: var(--surface-bright);
+      border: 1px solid var(--outline-variant); border-radius: 8px; box-shadow: var(--elevation-1); }
+    .dl-form label { display: block; margin-bottom: 8px;
+      font: 500 14px/20px var(--font-ui); color: var(--fg-1); }
+    .dl-row { display: flex; flex-wrap: wrap; gap: 12px; }
+    .dl-row input { flex: 1 1 220px; min-width: 0; padding: 11px 14px;
+      font: 400 15px/22px var(--font-ui); color: var(--fg-1);
+      background: var(--surface-bright); border: 1px solid var(--outline); border-radius: 8px; }
+    .dl-row input::placeholder { color: var(--fg-4); }
+    .dl-row input:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 1px;
+      border-color: var(--petrol-40); }
+    .dl-row button { border: 0; cursor: pointer; }
+    /* Brevos Spamfalle: sichtbar für Bots, unerreichbar für Menschen. */
+    .dl-trap { position: absolute; left: -9999px; width: 1px; height: 1px; }
+    .dl-legal { margin-top: 16px; font: 400 13px/19px var(--font-ui); color: var(--fg-4); }
+    .dl-legal a { color: var(--petrol-40); }
+    .dl-ready:not([hidden]) { display: grid; justify-items: start; gap: 16px; }
+    .dl-ready p { color: var(--fg-2); }
+    /* Sobald der Knopf ohnehin unter das Feld rutscht, darf er die Zeile füllen:
+       ein daumenbreites Ziel statt eines schmalen am linken Rand. */
+    @media (max-width: 520px) {
+      .dl-row button, .dl-ready .btn { width: 100%; text-align: center; }
+    }
   </style>
 </head>
 <body>
@@ -272,7 +299,7 @@
       <p class="headline">Sechs Handgriffe weniger pro Prüfung.</p>
       <p class="lead">Eine Chrome-Erweiterung für Prüfingenieure, die täglich im GTÜ-Produktionstool arbeiten. Sie nimmt die kleinen Wiederholungen ab, die sich über den Tag summieren. Ohne Konto, ohne Server, ohne Telemetrie: alles bleibt auf dem Gerät.</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip">Aktuelle Version herunterladen</a>
+        <a class="btn btn-primary" href="#download">Aktuelle Version herunterladen</a>
         <a class="btn btn-outlined" href="https://github.com/funkedipasys-dot/pruefhelfer">Zum Repo auf GitHub</a>
       </div>
     </div>
@@ -366,6 +393,44 @@
     </div>
   </section>
 
+  <section id="download">
+    <div class="wrap">
+      <p class="kicker">Download</p>
+      <h2>Update-News abonnieren, Download bekommen</h2>
+      <p class="dl-lead">Der Prüfhelfer wird laufend weiterentwickelt. Tragen Sie sich für die Update-News ein: Sie erfahren, wenn eine neue Fassung da ist, was sich ändert und worauf zu achten ist. Der Download-Link erscheint direkt danach hier auf der Seite.</p>
+
+      <div class="dl-card">
+        <!-- ponytail: eigenes Markup statt Brevo-Embed. Der Embed zöge Skript und
+             Stylesheet von sibforms.com nach, und der Footer verspricht, dass kein
+             Drittanbieter-Skript lädt. Gepostet wird in ein verstecktes iframe,
+             damit die Seite stehen bleibt. -->
+        <form id="news-form" class="dl-form" method="POST" target="brevo-sink"
+              action="BREVO_FORM_ACTION_PLATZHALTER" data-type="subscription">
+          <label for="news-mail">Ihre E-Mail-Adresse</label>
+          <div class="dl-row">
+            <input id="news-mail" type="email" name="EMAIL" required
+                   autocomplete="email" placeholder="name@ihr-buero.de">
+            <button class="btn btn-primary" type="submit">Eintragen und herunterladen</button>
+          </div>
+          <input class="dl-trap" type="text" name="email_address_check" value=""
+                 tabindex="-1" autocomplete="off" aria-hidden="true">
+          <input type="hidden" name="locale" value="de">
+          <p class="dl-legal">Nur Update-News zum Prüfhelfer, nichts zu anderen Themen, jederzeit über den Abmeldelink kündbar. Für den Versand nutzen wir Brevo. Mit dem Absenden erklären Sie sich einverstanden, dass Ihre Angaben dorthin übertragen und dort verarbeitet werden, gemäß der <a href="https://www.brevo.com/de/legal/privacypolicy/" target="_blank" rel="nofollow noopener">Datenschutzerklärung von Brevo</a>.</p>
+        </form>
+        <iframe name="brevo-sink" title="Formularziel" hidden></iframe>
+
+        <div id="dl-ready" class="dl-ready" hidden>
+          <p><strong>Danke.</strong> Sie bekommen eine Bestätigungsmail; erst mit dem Klick darin sind Sie eingetragen. Der Download steht unabhängig davon bereit.</p>
+          <a class="btn btn-primary" href="https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip">pruefhelfer.zip herunterladen</a>
+        </div>
+
+        <noscript>
+          <p class="dl-legal">Das Eintragen braucht JavaScript. Ohne geht es formlos an <a href="mailto:funke@dipa-sys.de?subject=Pr%C3%BCfhelfer%20Update-News">funke@dipa-sys.de</a> — oder gleich <a href="https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip">zum Download</a>.</p>
+        </noscript>
+      </div>
+    </div>
+  </section>
+
   <section id="installation">
     <div class="wrap">
       <p class="kicker">Installation</p>
@@ -374,7 +439,7 @@
 
       <p class="way">Fertige Version <span class="tag">empfohlen</span></p>
       <ol class="steps">
-        <li><span><a href="https://github.com/funkedipasys-dot/pruefhelfer/releases/latest/download/pruefhelfer.zip">pruefhelfer.zip herunterladen</a> und in einen dauerhaften Ordner entpacken.</span></li>
+        <li><span><a href="#download">pruefhelfer.zip herunterladen</a> und in einen dauerhaften Ordner entpacken.</span></li>
         <li><span><code>chrome://extensions</code> öffnen und den Entwicklermodus einschalten.</span></li>
         <li><span>„Entpackte Erweiterung laden" wählen und den entpackten Ordner auswählen.</span></li>
       </ol>
@@ -480,6 +545,7 @@
 
       <h3>Datenschutz auf dieser Seite</h3>
       <p>Die Aussagen weiter oben betreffen die Erweiterung selbst: Sie sendet nichts. Diese Website liegt auf GitHub Pages, das dabei technisch bedingt die IP-Adresse verarbeitet. Sonst nichts: kein Tracking, keine Analyse, keine Werbe-Cookies, kein Drittanbieter-Skript.</p>
+      <p>Eine Ausnahme gibt es: Wer sich für die Update-News einträgt, sendet damit seine E-Mail-Adresse an Brevo (Sendinblue GmbH), wo die Liste geführt und der Versand abgewickelt wird. Das passiert erst beim Absenden des Formulars, nichts davon lädt vorher. Einzelheiten in der <a href="https://www.brevo.com/de/legal/privacypolicy/" target="_blank" rel="nofollow noopener">Datenschutzerklärung von Brevo</a>. Abmelden geht jederzeit über den Link in jeder Mail; wer lieber gar nichts einträgt, schreibt formlos an <a href="mailto:funke@dipa-sys.de">funke@dipa-sys.de</a>.</p>
 
       <h3 id="impressum">Impressum</h3>
       <p>Angaben gemäß § 5 DDG. Verantwortlich für diese Seite und das Projekt Prüfhelfer:</p>
@@ -496,6 +562,36 @@
       </div>
     </div>
   </footer>
+
+  <script>
+    // Freischaltung des Downloads nach dem Eintragen. Der Link liegt öffentlich
+    // auf GitHub, das hier ist eine Höflichkeitsschwelle und keine Zugangssperre.
+    (function () {
+      var form = document.getElementById('news-form');
+      var ready = document.getElementById('dl-ready');
+      var KEY = 'pruefhelfer-update-news';
+
+      function reveal() {
+        form.hidden = true;
+        ready.hidden = false;
+      }
+
+      // Solange die echte Brevo-Formular-URL fehlt, gar nicht erst gaten: eine
+      // Seite, die den Download verweigert, ist schlimmer als eine ohne Formular.
+      if (form.getAttribute('action').indexOf('PLATZHALTER') !== -1) { reveal(); return; }
+
+      try { if (localStorage.getItem(KEY)) reveal(); } catch (e) {}
+
+      form.addEventListener('submit', function () {
+        try { localStorage.setItem(KEY, '1'); } catch (e) {}
+        // ponytail: Brevo antwortet cross-origin, die Antwort im iframe ist nicht
+        // lesbar. Freigeschaltet wird deshalb beim Absenden, nicht bei bestätigtem
+        // Eingang. Wer den Weg über einen eigenen Endpoint gehen will, kann hier
+        // auf die echte Antwort warten.
+        setTimeout(reveal, 400);
+      });
+    })();
+  </script>
 
 </body>
 </html>
