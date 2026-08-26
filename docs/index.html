@@ -134,6 +134,14 @@
       color: var(--fg-2);
       white-space: nowrap; overflow-x: auto;
     }
+    /* Die Sammelkarte: bewusst ruhiger als die vier davor. Kein .demo-Band,
+       kein Blickfang — was hier steht, ist nützlich, aber keine Schlagzeile. */
+    .feature-sammlung { background: var(--surface-low); box-shadow: none; }
+    .feature-sammlung:hover { box-shadow: none; }
+    .mini { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; }
+    .mini li { color: var(--fg-3); font-size: 14px; line-height: 20px; letter-spacing: .2px; padding-left: 16px; position: relative; }
+    .mini li::before { content: "·"; position: absolute; left: 4px; color: var(--fg-4); font-weight: 700; }
+    .mini strong { color: var(--fg-2); font-weight: 500; }
     .demo .old { color: var(--fg-4); }
     .demo .strike { text-decoration: line-through; text-decoration-color: #ba1a1a; color: var(--fg-4); }
     .demo .chip {
@@ -332,21 +340,25 @@
         </article>
         <article class="feature">
           <span class="num">04</span>
+          <h3>Fehlende Angaben in der Abschlussmaske</h3>
+          <p>Beim Abschluss fehlt regelmäßig eines der Pflichtfelder — HU-Fälligkeit, UMA-Datum oder Laufleistung. Bisher hieß das: raus aus der Maske, zurückscrollen, eintragen, wieder vor. Der Prüfhelfer legt eine Leiste an den Bildschirmrand, die genau die angemahnten Felder nennt und entgegennimmt. Geschrieben wird in das echte Feld hinter der Maske, und der Wert wird zurückgelesen: was nicht ankam, wird gemeldet statt geschluckt.</p>
+          <div class="demo"><span class="old">Maske mahnt an:</span> HU fällig <span class="chip-filled">Eintragen</span></div>
+        </article>
+        <article class="feature">
+          <span class="num">05</span>
           <h3>Kilometerstand übernehmen</h3>
           <p>Im Dialog „Wegstreckenzähler ändern" steht der alte Stand direkt unter dem leeren Pflichtfeld. Ein Klick trägt ihn ein. Bei Nachkontrollen innerhalb der GTÜ, wenn das Fahrzeug Hof oder Werkstatt nicht verlassen hat, passt er unverändert — sonst gleichen <strong>+2</strong> oder <strong>+5</strong> die Strecke bis zur Prüfung aus.</p>
           <div class="demo"><span class="old">Alter Stand: 156.223 km</span> <span class="chip-filled">Übernehmen</span> <span class="chip">+2</span> <span class="chip">+5</span></div>
         </article>
-        <article class="feature">
-          <span class="num">05</span>
-          <h3>Mit Pfeiltasten durch die Monate springen</h3>
-          <p>Im Feld „HU fällig" stehend springt <kbd>←</kbd> einen Monat zurück, <kbd>→</kbd> einen vor. Aus „08.2026" wird mit drei Anschlägen „05.2026" — kein Zahlendreher beim Tippen.</p>
-          <div class="demo"><kbd>←</kbd> <kbd>←</kbd> <kbd>←</kbd> <span class="old">08.2026 wird zu</span> <strong>05.2026</strong></div>
-        </article>
-        <article class="feature">
+        <article class="feature feature-sammlung">
           <span class="num">06</span>
-          <h3>Korrekturvorschlag bei falscher Datumseingabe</h3>
-          <p>Aus „25.12.10" macht das Tool „25.12.0010" und meldet einen Fehler. Neben der Meldung erscheint ein Knopf mit dem Datum, das gemeint war. Ein Klick trägt es ein.</p>
-          <div class="demo"><span class="strike">25.12.0010</span> <span class="chip-filled">25.12.2010</span></div>
+          <h3>Kleinigkeiten, die den Tag glätten</h3>
+          <ul class="mini">
+            <li><strong>Pfeiltasten durch die Monate.</strong> Im Feld „HU fällig" springt <kbd>←</kbd> einen Monat zurück, <kbd>→</kbd> einen vor — kein Zahlendreher beim Tippen.</li>
+            <li><strong>Korrekturvorschlag bei falscher Datumseingabe.</strong> Aus „25.12.10" macht das Tool „25.12.0010" und meldet einen Fehler. Daneben erscheint ein Knopf mit dem Datum, das gemeint war.</li>
+            <li><strong>Hinweis auf neue Fassungen.</strong> Eine entpackt geladene Erweiterung aktualisiert Chrome nie von selbst. Der Prüfhelfer sieht deshalb nach, ob es eine neuere gibt — ein Abruf einer öffentlichen Datei, ohne Kennung, ohne Rückkanal.</li>
+            <li><strong>Overlays weichen Dialogen.</strong> Öffnet die Anwendung einen Dialog, verschwinden die eigenen Einblendungen, statt darüber stehen zu bleiben.</li>
+          </ul>
         </article>
       </div>
 
@@ -422,6 +434,11 @@
         das eigene Haus hinaus wäre deshalb zuerst mit der GTÜ zu klären.
       </p>
 
+      <p style="color:var(--fg-2);max-width:52ch;margin-block:0 24px">
+        <strong>Alles von oben ist enthalten.</strong> Die Pro-Fassung ist die
+        offene Fassung plus das, was ohne Server nicht geht:
+      </p>
+
       <div class="features">
 
         <div class="feature">
@@ -432,28 +449,39 @@
 
         <div class="feature">
           <span class="num">02</span>
-          <h3>Mitbewerber ÜOs eingrenzen</h3>
-          <p>Wer als Mitbewerber überhaupt in Frage kommt, ist meist regional. Die Auswahl zieht sich aus den bisherigen Daten des Ingenieurbüros und zeigt, was dort wirklich vorkommt. Auch das jederzeit an- und abschaltbar.</p>
+          <h3>Abrechnungskunden zum Besichtigungsort</h3>
+          <p>Das Feld „Zahlung durch" listet alle Abrechnungskunden des Büros. Die Pro-Fassung zeigt nur die, die zum eingestellten Besichtigungsort gehören — bei einer Werkstatt also deren Kunden, nicht die aller anderen Standorte. Findet sie den Ort nicht eindeutig, filtert sie gar nicht, statt falsch zu filtern.</p>
         </div>
 
         <div class="feature">
           <span class="num">03</span>
-          <h3>Organisationsweite Textbausteine</h3>
-          <p>Einmal zentral gepflegt, überall da. Statt auf jedem Rechner einzeln angelegt.</p>
+          <h3>Mitbewerber-ÜOs eingrenzen</h3>
+          <p>Wer als Mitbewerber überhaupt in Frage kommt, ist meist regional. Die Auswahl zieht sich aus den bisherigen Daten des Ingenieurbüros und zeigt, was dort wirklich vorkommt. Auch das jederzeit an- und abschaltbar.</p>
         </div>
 
         <div class="feature">
           <span class="num">04</span>
-          <h3>HU-Fälligkeit und UMA-Datum in der Abschlussmaske</h3>
-          <p>Immer wieder fehlt beim Abschluss eines der beiden Daten. Bisher heißt das: raus aus der Maske, zurückscrollen, eintragen, wieder vor. Die Pro-Fassung setzt die Eingabefelder direkt dorthin, wo der Fehler auffällt — in die Abschlussmaske, kurz vor dem Druck.</p>
+          <h3>Organisationsweite Textbausteine</h3>
+          <p>Einmal zentral gepflegt, überall da. Statt auf jedem Rechner einzeln angelegt.</p>
         </div>
 
       </div>
 
+      <div class="to-pro" style="margin-top:32px">
+        <h3>Woran gerade gearbeitet wird</h3>
+        <p>Noch nicht fertig, aber begonnen: <strong>Mangel-Vorschläge aus den
+        Bremswerten</strong> — die Erweiterung liest die gemessenen Werte und
+        schlägt passende Mängel aus dem amtlichen Katalog vor, die der Prüfer
+        einzeln bestätigt. Und der <strong>Sprachbefund</strong>: die Ansage
+        unterm Auto wird zum Vorschlag, statt auf einem Zettel zu landen.
+        Entschieden wird beides weiterhin vom Prüfer — die Erweiterung schlägt
+        vor und trägt auf Klick ein.</p>
+      </div>
+
       <div class="pro-cta">
         <p style="color:var(--fg-2);max-width:46ch;margin:0 auto 20px">
-          Gebaut wird, sobald genug Bedarf zusammenkommt. Wer sich meldet,
-          entscheidet mit, was zuerst entsteht.
+          Die vier Funktionen oben laufen bereits im eigenen Büro. Was als
+          nächstes entsteht, entscheidet der gemeldete Bedarf mit.
         </p>
         <!-- ponytail: Brevo-Serve-Endpoint, klassischer POST ohne JS.
              BREVO_FORM_ID ersetzen durch die ID aus Brevo → Kontakte → Formulare → „Teilen".
