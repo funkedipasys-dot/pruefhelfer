@@ -299,6 +299,13 @@
     </div>
   </header>
 
+  <!-- ponytail: Abschnitt aus, solange docs/videos/ nur die README enthält.
+       Ein <video> ohne Datei zeigt einen leeren Player mit kaputtem Poster —
+       schlimmer als gar kein Abschnitt.
+       WIEDER EINSCHALTEN: erklaervideo.mp4/.webm und erklaervideo-poster.jpg
+       nach docs/videos/ legen (Dateinamen und ffmpeg-Befehle stehen in der
+       README dort), dann diese zwei Kommentarzeilen entfernen. -->
+  <!--
   <section id="video">
     <div class="wrap">
       <p class="kicker">Kurz gezeigt</p>
@@ -314,6 +321,8 @@
       </video>
     </div>
   </section>
+  -->
+
 
   <section id="funktionen">
     <div class="wrap">
@@ -483,9 +492,18 @@
           Die vier Funktionen oben laufen bereits im eigenen Büro. Was als
           nächstes entsteht, entscheidet der gemeldete Bedarf mit.
         </p>
-        <!-- ponytail: Brevo-Serve-Endpoint, klassischer POST ohne JS.
-             BREVO_FORM_ID ersetzen durch die ID aus Brevo → Kontakte → Formulare → „Teilen".
-             Solange der Platzhalter drinsteht, ist das Formular tot: nicht pushen. -->
+        <!-- ponytail: Der Mail-Weg ist derzeit der einzige, und das ist Absicht.
+             Das Brevo-Formular steht darunter fertig, aber auskommentiert: seine
+             action zeigt auf den Platzhalter BREVO_FORM_ID, und ein Formular, das
+             beim Absenden auf einer Fehlerseite endet, ist schlimmer als keins —
+             es verliert genau die Interessenten, für die es gebaut wurde.
+             EINSCHALTEN: BREVO_FORM_ID durch die echte ID ersetzen (Brevo →
+             Kontakte → Formulare → „Teilen"), dann die Kommentarzeichen um das
+             <form> entfernen und diesen Mailto-Block wieder auf <small> kürzen. -->
+        <a class="btn btn-primary" href="mailto:funke@dipa-sys.de?subject=Pr%C3%BCfhelfer%20Pro%20%E2%80%94%20Bedarf&amp;body=B%C3%BCro%3A%20%0AGew%C3%BCnschte%20Funktion%3A%20%0AAnzahl%20Pr%C3%BCfer%3A%20">Bedarf per E-Mail melden</a>
+        <small>Eine Mail an <a href="mailto:funke@dipa-sys.de">funke@dipa-sys.de</a> mit Büro, gewünschter Funktion und Anzahl Prüfer genügt — Betreff und Stichpunkte sind im Link schon vorbereitet.</small>
+
+        <!--
         <form class="pro-form" action="https://sibforms.com/serve/BREVO_FORM_ID" method="POST">
           <label>E-Mail-Adresse *
             <input type="email" name="EMAIL" required autocomplete="email" placeholder="name@beispiel.de">
@@ -510,7 +528,8 @@
           <input type="hidden" name="locale" value="de">
           <button class="btn btn-primary" type="submit">Bedarf anmelden</button>
         </form>
-        <small>Lieber formlos per Mail? <a href="mailto:funke@dipa-sys.de?subject=Pr%C3%BCfhelfer%20Pro%20%E2%80%94%20Bedarf&amp;body=B%C3%BCro%3A%20%0AGew%C3%BCnschte%20Funktion%3A%20%0AAnzahl%20Pr%C3%BCfer%3A%20">funke@dipa-sys.de</a>: Büro, gewünschte Funktion, Anzahl Prüfer.</small>
+        -->
+
       </div>
     </div>
   </section>
@@ -529,8 +548,14 @@
       <h3>Lizenz</h3>
       <p>Der Quelltext ist offen einsehbar, private und geschäftliche Nutzung der Erweiterung ist erlaubt. Weiterverbreitung und abgeleitete Werke sind nicht gestattet. Einzelheiten in der <a href="https://github.com/funkedipasys-dot/pruefhelfer/blob/main/LICENSE">LICENSE</a> im Repo.</p>
 
-      <h3 id="datenschutz-formular">Datenschutz beim Interessenten-Formular</h3>
-      <p>Die Seite selbst setzt keine Cookies und bindet nichts von Dritten ein. Nur wenn Sie das Formular oben absenden, werden die eingetragenen Angaben (E-Mail-Adresse, Name, Büro, gewünschte Funktion, Anzahl Prüfer) an Brevo (Sendinblue GmbH, Köpenicker Str. 126, 10179 Berlin) übermittelt und dort in unserem Auftrag gespeichert. Rechtsgrundlage ist Ihre Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO. Die Angaben werden ausschließlich genutzt, um Sie zur Pro-Version zu kontaktieren, und nicht an weitere Dritte gegeben. Sie können die Einwilligung jederzeit formlos per E-Mail an die unten genannte Adresse widerrufen; die Daten werden dann gelöscht. Das Erklärvideo liegt auf demselben Server wie diese Seite, beim Abspielen wird nichts an Dritte übertragen.</p>
+      <h3 id="datenschutz-formular">Datenschutz bei der Bedarfsmeldung</h3>
+      <p>Die Seite setzt keine Cookies und bindet nichts von Dritten ein — es gibt kein Formular und kein Tracking. Wer Bedarf an der Pro-Version meldet, schreibt eine ganz gewöhnliche E-Mail; die darin gemachten Angaben werden ausschließlich genutzt, um zur Pro-Version zu antworten, und nicht an Dritte gegeben. Auf formlose Bitte werden sie gelöscht.</p>
+      <!-- ponytail: Sobald das Brevo-Formular oben eingeschaltet wird, gehört
+           dieser Absatz zurück auf die längere Fassung mit Auftragsverarbeiter
+           (Sendinblue GmbH, Köpenicker Str. 126, 10179 Berlin), Art. 6 Abs. 1
+           lit. a DSGVO und Widerrufshinweis. Sie steht in der Git-Historie:
+           git show b1657bf:docs/index.html
+           Dasselbe gilt für den Satz zum Erklärvideo. -->
 
       <h3 id="impressum">Impressum</h3>
       <p>Angaben gemäß § 5 DDG. Verantwortlich für diese Seite und das Projekt Prüfhelfer:</p>
