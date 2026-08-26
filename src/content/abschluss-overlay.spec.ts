@@ -130,8 +130,8 @@ it('sagt nach dem Eintrag, dass die Validierungsliste eine Momentaufnahme ist', 
   eingabe(overlay.shadow).value = '08.2028';
   klick();
 
-  // Ohne diesen Satz stuende der Pruefer vor einer Maske, die weiter "nicht
-  // gesetzt" meldet, und hielte den Eintrag fuer misslungen.
+  // Ohne diesen Satz stünde der Prüfer vor einer Maske, die weiter "nicht
+  // gesetzt" meldet, und hielte den Eintrag für misslungen.
   expect(meldung(overlay.shadow).textContent).toContain('schließen und erneut öffnen');
   expect(meldung(overlay.shadow).className).toBe('hinweis');
   overlay.destroy();

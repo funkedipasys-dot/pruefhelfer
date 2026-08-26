@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Prüfhelfer Lite – von den Machern von DiPA</title>
+  <title>Prüfhelfer Lite – Chrome-Erweiterung für Prüfingenieure</title>
   <meta name="description" content="Sechs Handgriffe weniger pro Prüfung: FSD-Jobs auf einen Klick, Textbausteine, Kilometerstand, HU-Fälligkeit per Pfeiltaste, Erstzulassung. Ohne Konto, ohne Server, ohne Telemetrie. Von den Machern von DiPA.">
   <link rel="canonical" href="https://funkedipasys-dot.github.io/pruefhelfer/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' rx='13' fill='%23126b66'/%3E%3Ccircle cx='24' cy='24' r='11.4' fill='none' stroke='%23fff' stroke-width='4.2' stroke-dasharray='56 16' stroke-dashoffset='-31'/%3E%3Cpath d='M17.5 24.3 L22 28.6 L31 18.5' fill='none' stroke='%2345c2b4' stroke-width='3.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" type="image/svg+xml">
@@ -134,14 +134,6 @@
       color: var(--fg-2);
       white-space: nowrap; overflow-x: auto;
     }
-    /* Die Sammelkarte: bewusst ruhiger als die vier davor. Kein .demo-Band,
-       kein Blickfang — was hier steht, ist nützlich, aber keine Schlagzeile. */
-    .feature-sammlung { background: var(--surface-low); box-shadow: none; }
-    .feature-sammlung:hover { box-shadow: none; }
-    .mini { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; }
-    .mini li { color: var(--fg-3); font-size: 14px; line-height: 20px; letter-spacing: .2px; padding-left: 16px; position: relative; }
-    .mini li::before { content: "·"; position: absolute; left: 4px; color: var(--fg-4); font-weight: 700; }
-    .mini strong { color: var(--fg-2); font-weight: 500; }
     .demo .old { color: var(--fg-4); }
     .demo .strike { text-decoration: line-through; text-decoration-color: #ba1a1a; color: var(--fg-4); }
     .demo .chip {
@@ -236,14 +228,20 @@
       th, td { padding: 12px 14px; }
     }
 
-    .pro-cta { text-align: center; margin-top: 48px; }
-    .pro-cta small { display: block; margin-top: 12px; color: var(--fg-4); font-size: 13px; }
-
-    /* Übergang von den Funktionen zur Pro-Fassung. Kein Kasten: die Karten
-       darüber tragen schon Rahmen, ein weiterer würde nur konkurrieren. */
-    .to-pro { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--divider); }
-    .to-pro h3 { font: 500 18px/26px var(--font-ui); color: var(--fg-1); margin-bottom: 6px; }
-    .to-pro p { color: var(--fg-2); max-width: 52ch; margin-bottom: 16px; }
+    .badge-planned {
+      display: inline-block;
+      /* .feature ist flex-column: ohne align-self streckt sich das Pill auf
+         volle Kartenbreite und sieht aus wie ein leeres Eingabefeld. */
+      align-self: flex-start;
+      margin-top: auto;
+      padding: 2px 10px;
+      border-radius: 9999px;
+      background: var(--surface-low);
+      border: 1px solid var(--outline);
+      color: var(--fg-4);
+      font: 500 11px/16px var(--font-ui);
+      letter-spacing: .3px;
+    }
 
     /* ---------- Erklärvideo ---------- */
     /* ponytail: selbst gehostetes <video>, kein YouTube — spart Cookie-Banner und Drittanbieter */
@@ -255,30 +253,11 @@
       box-shadow: var(--elevation-1);
     }
 
-    /* ---------- Pro-Formular ---------- */
-    .pro-form {
-      margin: 0 auto; max-width: 44ch; text-align: left;
-      display: flex; flex-direction: column; gap: 16px;
-    }
-    .pro-form label { font: 500 13px/20px var(--font-ui); letter-spacing: .2px; color: var(--fg-2); display: block; }
-    .pro-form input[type="email"],
-    .pro-form input[type="text"],
-    .pro-form input[type="number"] {
-      display: block; width: 100%; margin-top: 6px; padding: 10px 12px;
-      font: 400 15px/22px var(--font-ui); color: var(--fg-1);
-      background: var(--surface-bright);
-      border: 1px solid var(--outline); border-radius: 8px;
-      transition: border-color .2s var(--ease);
-    }
-    .pro-form input:hover { border-color: var(--fg-4); }
-    .pro-form input:focus-visible { border-color: var(--petrol-40); }
-    .pro-form .check {
-      display: flex; gap: 10px; align-items: flex-start;
-      font-weight: 400; font-size: 13px; line-height: 20px; color: var(--fg-3);
-    }
-    .pro-form .check input { flex: none; margin-top: 3px; accent-color: var(--petrol-40); width: 16px; height: 16px; }
-    .pro-form button { border: none; cursor: pointer; font-family: var(--font-ui); }
-    .pro-form .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+    /* Übergang von den Funktionen zur Pro-Fassung. Kein Kasten: die Karten
+       darüber tragen schon Rahmen, ein weiterer würde nur konkurrieren. */
+    .to-pro { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--divider); }
+    .to-pro h3 { font: 500 18px/26px var(--font-ui); color: var(--fg-1); margin-bottom: 6px; }
+    .to-pro p { color: var(--fg-2); max-width: 52ch; margin-bottom: 16px; }
   </style>
 </head>
 <body>
@@ -299,30 +278,22 @@
     </div>
   </header>
 
-  <!-- ponytail: Abschnitt aus, solange docs/videos/ nur die README enthält.
-       Ein <video> ohne Datei zeigt einen leeren Player mit kaputtem Poster —
-       schlimmer als gar kein Abschnitt.
-       WIEDER EINSCHALTEN: erklaervideo.mp4/.webm und erklaervideo-poster.jpg
-       nach docs/videos/ legen (Dateinamen und ffmpeg-Befehle stehen in der
-       README dort), dann diese zwei Kommentarzeilen entfernen. -->
-  <!--
   <section id="video">
     <div class="wrap">
       <p class="kicker">Kurz gezeigt</p>
       <h2>So sieht das im Alltag aus</h2>
-      <p>Ein Durchgang durch die sechs Handgriffe im Produktionstool, ohne Erklärbär.</p>
+      <p>Ein Durchgang durch die Funktionen im Produktionstool — mit Ton, gut achteinhalb Minuten.</p>
       <video class="explainer" controls preload="none" playsinline
              width="1280" height="720"
              poster="videos/erklaervideo-poster.jpg">
-        <source src="videos/erklaervideo.webm" type="video/webm">
+        <!-- ponytail: nur MP4. Eine WebM-Quelle waere ~30 % kleiner, aber ohne
+             die Datei ergaebe die <source>-Zeile bei jedem Aufruf einen 404. -->
         <source src="videos/erklaervideo.mp4" type="video/mp4">
         <p>Ihr Browser kann dieses Video nicht abspielen.
           <a href="videos/erklaervideo.mp4">Direkt herunterladen</a>.</p>
       </video>
     </div>
   </section>
-  -->
-
 
   <section id="funktionen">
     <div class="wrap">
@@ -349,25 +320,21 @@
         </article>
         <article class="feature">
           <span class="num">04</span>
-          <h3>Fehlende Angaben in der Abschlussmaske</h3>
-          <p>Beim Abschluss fehlt regelmäßig eines der Pflichtfelder — HU-Fälligkeit, UMA-Datum oder Laufleistung. Bisher hieß das: raus aus der Maske, zurückscrollen, eintragen, wieder vor. Der Prüfhelfer legt eine Leiste an den Bildschirmrand, die genau die angemahnten Felder nennt und entgegennimmt. Geschrieben wird in das echte Feld hinter der Maske, und der Wert wird zurückgelesen: was nicht ankam, wird gemeldet statt geschluckt.</p>
-          <div class="demo"><span class="old">Maske mahnt an:</span> HU fällig <span class="chip-filled">Eintragen</span></div>
-        </article>
-        <article class="feature">
-          <span class="num">05</span>
           <h3>Kilometerstand übernehmen</h3>
           <p>Im Dialog „Wegstreckenzähler ändern" steht der alte Stand direkt unter dem leeren Pflichtfeld. Ein Klick trägt ihn ein. Bei Nachkontrollen innerhalb der GTÜ, wenn das Fahrzeug Hof oder Werkstatt nicht verlassen hat, passt er unverändert — sonst gleichen <strong>+2</strong> oder <strong>+5</strong> die Strecke bis zur Prüfung aus.</p>
           <div class="demo"><span class="old">Alter Stand: 156.223 km</span> <span class="chip-filled">Übernehmen</span> <span class="chip">+2</span> <span class="chip">+5</span></div>
         </article>
-        <article class="feature feature-sammlung">
+        <article class="feature">
+          <span class="num">05</span>
+          <h3>Mit Pfeiltasten durch die Monate springen</h3>
+          <p>Im Feld „HU fällig" stehend springt <kbd>←</kbd> einen Monat zurück, <kbd>→</kbd> einen vor. Aus „08.2026" wird mit drei Anschlägen „05.2026" — kein Zahlendreher beim Tippen.</p>
+          <div class="demo"><kbd>←</kbd> <kbd>←</kbd> <kbd>←</kbd> <span class="old">08.2026 wird zu</span> <strong>05.2026</strong></div>
+        </article>
+        <article class="feature">
           <span class="num">06</span>
-          <h3>Kleinigkeiten, die den Tag glätten</h3>
-          <ul class="mini">
-            <li><strong>Pfeiltasten durch die Monate.</strong> Im Feld „HU fällig" springt <kbd>←</kbd> einen Monat zurück, <kbd>→</kbd> einen vor — kein Zahlendreher beim Tippen.</li>
-            <li><strong>Korrekturvorschlag bei falscher Datumseingabe.</strong> Aus „25.12.10" macht das Tool „25.12.0010" und meldet einen Fehler. Daneben erscheint ein Knopf mit dem Datum, das gemeint war.</li>
-            <li><strong>Hinweis auf neue Fassungen.</strong> Eine entpackt geladene Erweiterung aktualisiert Chrome nie von selbst. Der Prüfhelfer sieht deshalb nach, ob es eine neuere gibt — ein Abruf einer öffentlichen Datei, ohne Kennung, ohne Rückkanal.</li>
-            <li><strong>Overlays weichen Dialogen.</strong> Öffnet die Anwendung einen Dialog, verschwinden die eigenen Einblendungen, statt darüber stehen zu bleiben.</li>
-          </ul>
+          <h3>Korrekturvorschlag bei falscher Datumseingabe</h3>
+          <p>Aus „25.12.10" macht das Tool „25.12.0010" und meldet einen Fehler. Neben der Meldung erscheint ein Knopf mit dem Datum, das gemeint war. Ein Klick trägt es ein.</p>
+          <div class="demo"><span class="strike">25.12.0010</span> <span class="chip-filled">25.12.2010</span></div>
         </article>
       </div>
 
@@ -443,11 +410,6 @@
         das eigene Haus hinaus wäre deshalb zuerst mit der GTÜ zu klären.
       </p>
 
-      <p style="color:var(--fg-2);max-width:52ch;margin-block:0 24px">
-        <strong>Alles von oben ist enthalten.</strong> Die Pro-Fassung ist die
-        offene Fassung plus das, was ohne Server nicht geht:
-      </p>
-
       <div class="features">
 
         <div class="feature">
@@ -458,14 +420,14 @@
 
         <div class="feature">
           <span class="num">02</span>
-          <h3>Abrechnungskunden zum Besichtigungsort</h3>
-          <p>Das Feld „Zahlung durch" listet alle Abrechnungskunden des Büros. Die Pro-Fassung zeigt nur die, die zum eingestellten Besichtigungsort gehören — bei einer Werkstatt also deren Kunden, nicht die aller anderen Standorte. Findet sie den Ort nicht eindeutig, filtert sie gar nicht, statt falsch zu filtern.</p>
+          <h3>Mitbewerber ÜOs eingrenzen</h3>
+          <p>Wer als Mitbewerber überhaupt in Frage kommt, ist meist regional. Die Auswahl zieht sich aus den bisherigen Daten des Ingenieurbüros und zeigt, was dort wirklich vorkommt. Auch das jederzeit an- und abschaltbar.</p>
         </div>
 
         <div class="feature">
           <span class="num">03</span>
-          <h3>Mitbewerber-ÜOs eingrenzen</h3>
-          <p>Wer als Mitbewerber überhaupt in Frage kommt, ist meist regional. Die Auswahl zieht sich aus den bisherigen Daten des Ingenieurbüros und zeigt, was dort wirklich vorkommt. Auch das jederzeit an- und abschaltbar.</p>
+          <h3>Abrechnungskunden pro Überwachungsort eingrenzen</h3>
+          <p>Die Auswahl zeigt nur noch die Abrechnungskunden, die an diesem Besichtigungsort schon einmal abgerechnet wurden. Wer dort nie vorkam, steht auch nicht im Dropdown. Wie die anderen Filter jederzeit an- und abschaltbar.</p>
         </div>
 
         <div class="feature">
@@ -474,62 +436,30 @@
           <p>Einmal zentral gepflegt, überall da. Statt auf jedem Rechner einzeln angelegt.</p>
         </div>
 
+        <div class="feature">
+          <span class="num">05</span>
+          <h3>HU-Fälligkeit und UMA-Datum in der Abschlussmaske</h3>
+          <p>Immer wieder fehlt beim Abschluss eines der beiden Daten. Bisher heißt das: raus aus der Maske, zurückscrollen, eintragen, wieder vor. Die Pro-Fassung setzt die Eingabefelder direkt dorthin, wo der Fehler auffällt — in die Abschlussmaske, kurz vor dem Druck.</p>
+        </div>
+
       </div>
 
-      <div class="to-pro" style="margin-top:32px">
-        <h3>Woran gerade gearbeitet wird</h3>
-        <p>Noch nicht fertig, aber begonnen: <strong>Mangel-Vorschläge aus den
-        Bremswerten</strong> — die Erweiterung liest die gemessenen Werte und
-        schlägt passende Mängel aus dem amtlichen Katalog vor, die der Prüfer
-        einzeln bestätigt. Und der <strong>Sprachbefund</strong>: die Ansage
-        unterm Auto wird zum Vorschlag, statt auf einem Zettel zu landen.
-        Entschieden wird beides weiterhin vom Prüfer — die Erweiterung schlägt
-        vor und trägt auf Klick ein.</p>
-      </div>
-
-      <div class="pro-cta">
-        <p style="color:var(--fg-2);max-width:46ch;margin:0 auto 20px">
-          Die vier Funktionen oben laufen bereits im eigenen Büro. Was als
-          nächstes entsteht, entscheidet der gemeldete Bedarf mit.
+      <!-- Bewusst nur ein stiller Outlined-Button, kein Anmelde-Block: Der
+           verspräche mehr Betrieb, als gerade dahintersteht. Ein fertiges
+           Brevo-Formular liegt in Commit 51c5db7 (Liste 8 „Prüfhelfer Pro –
+           Interesse"), zurückholen, sobald die Mail-Anfragen zu viele
+           werden. -->
+      <div style="margin-top:40px">
+        <p style="color:var(--fg-3);max-width:52ch;font-size:14px;line-height:21px;margin-bottom:16px">
+          Das Backend dazu ist entwickelt, aber nicht ausgerollt. Ob sich der
+          Betrieb lohnt, entscheidet sich an der Nachfrage. Wer Interesse
+          anmeldet, zahlt darauf ein.
         </p>
-        <!-- ponytail: Der Mail-Weg ist derzeit der einzige, und das ist Absicht.
-             Das Brevo-Formular steht darunter fertig, aber auskommentiert: seine
-             action zeigt auf den Platzhalter BREVO_FORM_ID, und ein Formular, das
-             beim Absenden auf einer Fehlerseite endet, ist schlimmer als keins —
-             es verliert genau die Interessenten, für die es gebaut wurde.
-             EINSCHALTEN: BREVO_FORM_ID durch die echte ID ersetzen (Brevo →
-             Kontakte → Formulare → „Teilen"), dann die Kommentarzeichen um das
-             <form> entfernen und diesen Mailto-Block wieder auf <small> kürzen. -->
-        <a class="btn btn-primary" href="mailto:funke@dipa-sys.de?subject=Pr%C3%BCfhelfer%20Pro%20%E2%80%94%20Bedarf&amp;body=B%C3%BCro%3A%20%0AGew%C3%BCnschte%20Funktion%3A%20%0AAnzahl%20Pr%C3%BCfer%3A%20">Bedarf per E-Mail melden</a>
-        <small>Eine Mail an <a href="mailto:funke@dipa-sys.de">funke@dipa-sys.de</a> mit Büro, gewünschter Funktion und Anzahl Prüfer genügt — Betreff und Stichpunkte sind im Link schon vorbereitet.</small>
-
-        <!--
-        <form class="pro-form" action="https://sibforms.com/serve/BREVO_FORM_ID" method="POST">
-          <label>E-Mail-Adresse *
-            <input type="email" name="EMAIL" required autocomplete="email" placeholder="name@beispiel.de">
-          </label>
-          <label>Name
-            <input type="text" name="VORNAME" autocomplete="name">
-          </label>
-          <label>Prüforganisation oder Büro
-            <input type="text" name="FIRMA" autocomplete="organization">
-          </label>
-          <label>Gewünschte Funktion
-            <input type="text" name="FUNKTION">
-          </label>
-          <label>Anzahl Prüfer
-            <input type="number" name="ANZAHL_PRUEFER" min="1" step="1" inputmode="numeric">
-          </label>
-          <label class="check">
-            <input type="checkbox" name="OPT_IN" value="1" required>
-            <span>Ich möchte zur Pro-Version kontaktiert werden und bin damit einverstanden, dass meine Angaben dafür gespeichert werden. Widerruf jederzeit per E-Mail. Näheres unter <a href="#datenschutz-formular">Datenschutz</a>.</span>
-          </label>
-          <input class="hp" type="text" name="email_address_check" value="" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <input type="hidden" name="locale" value="de">
-          <button class="btn btn-primary" type="submit">Bedarf anmelden</button>
-        </form>
-        -->
-
+        <a class="btn btn-outlined"
+           href="mailto:funke@dipa-sys.de?subject=Pr%C3%BCfhelfer%20Pro%20%E2%80%94%20Interesse&amp;body=B%C3%BCronummer%3A%20%0AWichtigste%20Funktion%3A%20%0AAnzahl%20Pr%C3%BCfer%3A%20"
+           rel="noopener">
+          Interesse anmelden
+        </a>
       </div>
     </div>
   </section>
@@ -548,14 +478,8 @@
       <h3>Lizenz</h3>
       <p>Der Quelltext ist offen einsehbar, private und geschäftliche Nutzung der Erweiterung ist erlaubt. Weiterverbreitung und abgeleitete Werke sind nicht gestattet. Einzelheiten in der <a href="https://github.com/funkedipasys-dot/pruefhelfer/blob/main/LICENSE">LICENSE</a> im Repo.</p>
 
-      <h3 id="datenschutz-formular">Datenschutz bei der Bedarfsmeldung</h3>
-      <p>Die Seite setzt keine Cookies und bindet nichts von Dritten ein — es gibt kein Formular und kein Tracking. Wer Bedarf an der Pro-Version meldet, schreibt eine ganz gewöhnliche E-Mail; die darin gemachten Angaben werden ausschließlich genutzt, um zur Pro-Version zu antworten, und nicht an Dritte gegeben. Auf formlose Bitte werden sie gelöscht.</p>
-      <!-- ponytail: Sobald das Brevo-Formular oben eingeschaltet wird, gehört
-           dieser Absatz zurück auf die längere Fassung mit Auftragsverarbeiter
-           (Sendinblue GmbH, Köpenicker Str. 126, 10179 Berlin), Art. 6 Abs. 1
-           lit. a DSGVO und Widerrufshinweis. Sie steht in der Git-Historie:
-           git show b1657bf:docs/index.html
-           Dasselbe gilt für den Satz zum Erklärvideo. -->
+      <h3>Datenschutz auf dieser Seite</h3>
+      <p>Die Aussagen weiter oben betreffen die Erweiterung selbst: Sie sendet nichts. Diese Website liegt auf GitHub Pages, das dabei technisch bedingt die IP-Adresse verarbeitet. Sonst nichts: kein Tracking, keine Analyse, keine Werbe-Cookies, kein Drittanbieter-Skript.</p>
 
       <h3 id="impressum">Impressum</h3>
       <p>Angaben gemäß § 5 DDG. Verantwortlich für diese Seite und das Projekt Prüfhelfer:</p>
@@ -563,7 +487,7 @@
         Christian Funke<br>
         Zu den Wallwiesen 4<br>
         26871 Papenburg<br>
-        E-Mail: <a href="mailto:c.funke@gtue-funke.de">c.funke@gtue-funke.de</a>
+        E-Mail: <a href="mailto:funke@dipa-sys.de">funke@dipa-sys.de</a>
       </address>
 
       <div class="foot-bottom">
