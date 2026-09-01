@@ -40,6 +40,44 @@ describe('FsdAutoCore', () => {
     ]);
   });
 
+  describe('volle, virtualisierte Liste (Slice 1.8)', () => {
+    // Gemessen am 2026-08-21: 8 von 24 Zeilen im DOM, 174 px je Zeile. Ein
+    // eingehender Auftrag verdrängt eine gerenderte Zeile — genau der Fall, in
+    // dem die alte Regel `removals.length === 0` nie mehr zutraf.
+    const ZEILE = 174;
+
+    it('erkennt einen neuen Auftrag, obwohl gleichzeitig eine Zeile aus dem Sichtfenster fällt', () => {
+      const core = armed([row('a'), row('b')], 24 * ZEILE);
+
+      expect(core.observe([row('a'), row('neu')], 10_000, 25 * ZEILE)).toEqual([
+        { id: 'neu', label: 'NEU', detectedAt: 10_000, dueAt: 40_000 },
+      ]);
+    });
+
+    it('bleibt bei gleicher Höhe still — das ist Scrollen, kein neuer Auftrag', () => {
+      const core = armed([row('a'), row('b')], 24 * ZEILE);
+
+      expect(core.observe([row('c'), row('d')], 10_000, 24 * ZEILE)).toEqual([]);
+      expect(core.snapshot()).toMatchObject({ mode: 'armed', pendingCount: 0 });
+    });
+
+    it('bleibt still, wenn ein Wachstum gleich ein ganzes Sichtfenster mitbringt', () => {
+      // Ein Filterwechsel auf eine längere Liste: die Höhe wächst, aber es
+      // kommen auf einen Schlag viele unbekannte Zeilen — keine Klickserie.
+      const core = armed([row('a'), row('b')], 24 * ZEILE);
+
+      const viele = [row('n1'), row('n2'), row('n3'), row('n4')];
+      expect(core.observe(viele, 10_000, 40 * ZEILE)).toEqual([]);
+    });
+
+    it('fällt ohne Höhenangabe auf die alte Regel zurück', () => {
+      const core = armed([row('a'), row('b')]);
+
+      // Austausch bei gleicher Größe, keine Höhe bekannt → wie vor Slice 1.8.
+      expect(core.observe([row('a'), row('fremd')], 10_000)).toEqual([]);
+    });
+  });
+
   it('markiert einen neuen Auftrag ohne Pending-Marker sicher als behandelt', () => {
     const core = armed([row('alt')]);
 
@@ -88,9 +126,9 @@ describe('FsdAutoCore', () => {
   });
 });
 
-function armed(rows: FsdOrderRow[]): FsdAutoCore {
+function armed(rows: FsdOrderRow[], hoehe: number | null = null): FsdAutoCore {
   const core = new FsdAutoCore();
-  core.enable(rows, 0);
+  core.enable(rows, 0, hoehe);
   expect(core.finishBaseline(rows, 3_000)).toBe(true);
   return core;
 }

@@ -1,12 +1,47 @@
 /**
- * Zustandskern der Pro-exklusiven FSD-Automatik.
+ * Zustandskern der FSD-Automatik — in beiden Fassungen, wie der Adapter
+ * daneben. Die Datei stand bis 2026-08-13 unter `src/pro/` und hieß deshalb
+ * lange „Pro-exklusiv"; das war eine Produktentscheidung, keine technische
+ * Abhängigkeit, und sie ist zurückgenommen.
  *
  * Der Kern kennt weder DOM noch Chrome-APIs. Er nimmt Schnappschüsse der
  * sichtbaren Auftragsliste entgegen und gibt nur dann einen Kandidaten frei,
  * wenn die Liste eindeutig gewachsen ist. Ein Austausch bei gleicher Größe
  * (Filter, Navigation oder virtuelles Scrollen) bleibt damit fail-safe ohne
  * automatischen Klick.
+ *
+ * **Seit Slice 1.8 (2026-08-21) reicht „sichtbar" dafür nicht mehr.** Die
+ * Auftragsliste ist virtualisiert: gemessen liegen 8 von 24 Zeilen im DOM. Ist
+ * das Sichtfenster voll, verdrängt jeder neu eingefügte Auftrag eine andere
+ * Zeile aus dem Renderfenster — `removals.length === 0` trifft dann nie mehr zu,
+ * und die Automatik war bei mehr als acht Aufträgen **wirkungslos**. Genau das
+ * hat Christian am 2026-08-21 gemeldet.
+ *
+ * Der Ausweg ist ein zweites Signal, das nicht am Renderfenster hängt: die
+ * **Gesamthöhe der Liste** (`scrollHeight` des Sichtfensters). Sie beschreibt
+ * alle Aufträge, auch die nie gerenderten. Wächst sie, ist die Liste länger
+ * geworden — beim Scrollen bleibt sie konstant.
+ *
+ * **Was daran gemessen ist und was nicht.** Gemessen (2026-08-21, DEV-Fassung):
+ * die Liste ist virtualisiert, 8 von 24 im DOM, `scrollHeight` 4176 px bei 24
+ * Aufträgen — also 174 px je Zeile, glatt aufgehend. *Nicht* beobachtet ist ein
+ * Auftrag, der während einer Aufnahme eingeht; dass `scrollHeight` in dem
+ * Moment wächst, ist daraus abgeleitet, nicht gesehen. Deshalb ist das Signal
+ * hier **zusätzlich** und nicht ersetzend: fehlt die Höhe, gilt die alte Regel
+ * unverändert weiter, und ein Wachstum allein genügt nie — es müssen auch
+ * wenige, bislang unbekannte Zeilen dazugekommen sein.
  */
+
+/**
+ * Wie viele bislang unbekannte Zeilen ein Wachstum höchstens mitbringen darf,
+ * damit es als „ein Auftrag ist eingegangen" durchgeht.
+ *
+ * Aufträge kommen einzeln herein. Ein Filterwechsel, der die Liste verlängert,
+ * bringt dagegen auf einen Schlag ein ganzes Sichtfenster unbekannter Zeilen —
+ * und der darf keine Klickserie auslösen. Zwei statt eins, weil zwei Meldungen
+ * dicht hintereinander in denselben Beobachtungstakt fallen können.
+ */
+export const FSD_MAX_NEUE_JE_TAKT = 2;
 
 export const FSD_BASELINE_MS = 3_000;
 export const FSD_OPEN_DELAY_MS = 30_000;
@@ -52,6 +87,8 @@ export class FsdAutoCore {
   private readonly handled = new Set<string>();
   private readonly pending = new Map<string, FsdCandidate>();
   private lastOpenedAt: number | null = null;
+  /** Die zuletzt gesehene Gesamthöhe der Liste; `null`, solange keine kam. */
+  private letzteHoehe: number | null = null;
 
   constructor(options: FsdAutoCoreOptions = {}) {
     this.baselineMs = nonNegative(options.baselineMs ?? FSD_BASELINE_MS, 'baselineMs');
@@ -59,11 +96,12 @@ export class FsdAutoCore {
     this.betweenOpensMs = nonNegative(options.betweenOpensMs ?? FSD_BETWEEN_OPENS_MS, 'betweenOpensMs');
   }
 
-  enable(rows: readonly FsdOrderRow[], now: number): void {
+  enable(rows: readonly FsdOrderRow[], now: number, listenHoehe: number | null = null): void {
     this.reset();
     this.enabled = true;
     this.baselineEndsAt = now + this.baselineMs;
     this.absorbBaseline(rows);
+    this.letzteHoehe = listenHoehe;
   }
 
   disable(): void {
@@ -74,10 +112,11 @@ export class FsdAutoCore {
    * Nimmt den aktuellen DOM-Stand auf. Während der Baseline wird nur gelernt;
    * danach erzeugt ausschließlich ein monotones Mengenwachstum Kandidaten.
    */
-  observe(rows: readonly FsdOrderRow[], now: number): FsdCandidate[] {
+  observe(rows: readonly FsdOrderRow[], now: number, listenHoehe: number | null = null): FsdCandidate[] {
     if (!this.enabled) return [];
     if (this.baselineEndsAt !== null) {
       this.absorbBaseline(rows);
+      this.letzteHoehe = listenHoehe;
       return [];
     }
 
@@ -87,8 +126,27 @@ export class FsdAutoCore {
     const removals = [...this.visible].filter((id) => !nextVisible.has(id));
     this.visible = nextVisible;
 
+    const vorherigeHoehe = this.letzteHoehe;
+    if (listenHoehe !== null) this.letzteHoehe = listenHoehe;
+
     const newCandidates: FsdCandidate[] = [];
-    const unambiguousGrowth = removals.length === 0 && additions.length > 0;
+
+    // Die Liste passt ganz ins Sichtfenster: dann ist „nichts verschwunden,
+    // etwas dazugekommen" nach wie vor die klarste Aussage, die es gibt.
+    const wachstumImSichtfenster = removals.length === 0 && additions.length > 0;
+
+    // Oder: die Liste selbst ist länger geworden — das gilt auch für Aufträge,
+    // die nie gerendert wurden. Nur mit wenigen unbekannten Zeilen zusammen,
+    // sonst wäre ein Filterwechsel nicht davon zu unterscheiden.
+    const neueUnbekannte = additions.filter((id) => !this.known.has(id));
+    const listeGewachsen =
+      vorherigeHoehe !== null &&
+      listenHoehe !== null &&
+      listenHoehe > vorherigeHoehe &&
+      neueUnbekannte.length > 0 &&
+      neueUnbekannte.length <= FSD_MAX_NEUE_JE_TAKT;
+
+    const unambiguousGrowth = wachstumImSichtfenster || listeGewachsen;
 
     for (const id of additions) {
       const wasKnown = this.known.has(id);
@@ -190,6 +248,7 @@ export class FsdAutoCore {
     this.handled.clear();
     this.pending.clear();
     this.lastOpenedAt = null;
+    this.letzteHoehe = null;
   }
 }
 

@@ -26,7 +26,10 @@
 
 import { BAR_STYLE } from './bar';
 import { checkField } from './field';
-import type { AngemahntesFeld } from './abschluss';
+import type { WriteOutcome } from './field';
+import { ausIso } from './abschluss';
+import { datumTaste, monatTaste } from '../core/feld-tasten';
+import type { AbschlussFeld, AngemahntesFeld } from './abschluss';
 
 /** Ein fester Bezeichner macht den Wirt zum Singleton. */
 export const ABSCHLUSS_HOST_ID = 'gtue-abschluss-host';
@@ -77,7 +80,23 @@ const ABSCHLUSS_STYLE = `${BAR_STYLE}
   border-radius: 999px;
   color: #565656;
 }
+/* Datum und Monat bringen ihre eigene Breite mit — feste 7em schnitten den
+   Wähler ab, den der Browser rechts in das Feld setzt. */
+.bar .wert:not([type='number']) { width: auto; }
 .bar .hinweis:empty { display: none; }
+/* Der Notiz-Hinweis (Slice 9.2) steht abgesetzt: er mahnt etwas an, das nicht
+   aus der Maske kommt, sondern aus dem eigenen Notizheft. */
+.bar .notiz {
+  color: #8a5a00;
+  background: #fff6e5;
+  padding: 2px 8px;
+  border-radius: 999px;
+  max-width: 32em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bar .notiz:empty { display: none; }
 `;
 
 export interface AbschlussOverlayDeps {
@@ -87,12 +106,49 @@ export interface AbschlussOverlayDeps {
    */
   read: (dialog: Element) => readonly AngemahntesFeld[];
   /**
-   * Der Wert ins echte Feld, mit Rückleseprüfung: `false` heißt, die Anwendung
-   * hat ihn nicht angenommen. Wird gemeldet statt verschwiegen — sonst hätte
-   * der Prüfer eine Bestätigung vor sich und ein unverändertes Feld hinter der
-   * Maske, das er nicht sehen kann.
+   * Der Wert ins echte Feld, mit Rückleseprüfung: `accepted: false` heißt, die
+   * Anwendung hat ihn nicht angenommen. Wird gemeldet statt verschwiegen —
+   * sonst hätte der Prüfer eine Bestätigung vor sich und ein unverändertes Feld
+   * hinter der Maske, das er nicht sehen kann.
+   *
+   * `focused` zählt hier mehr als anderswo: dies ist die **einzige** Leiste,
+   * die in ein Feld hinter einem offenen Dialog schreibt, also gegen den
+   * Focus-Trap des CDK an. Bleibt der Fokus aus, steht der Wert zwar da, das
+   * Formular hat ihn aber nie als berührt verbucht.
    */
-  write: (input: HTMLInputElement, wert: string) => boolean;
+  write: (input: HTMLInputElement, wert: string) => WriteOutcome;
+  /**
+   * Ob ein Eintrag **ohne** Fokus als Fehlschlag gemeldet wird. Vorgabe: ja.
+   *
+   * Die offene Fassung setzt das vorerst auf `false`. Nicht weil der Fall dort
+   * anders läge — der Code ist derselbe —, sondern weil das Verhalten des
+   * Focus-Traps am echten Produktionstool **noch nicht gemessen ist**. Schlägt
+   * er dort immer zu, bekäme jeder Prüfer bei jedem Eintrag eine Warnung; das
+   * an öffentlich verteilte Nutzer auszuliefern, bevor es jemand gesehen hat,
+   * wäre geraten statt gemessen. In der Pro-Fassung, die nur im eigenen Büro
+   * läuft, ist die Warnung genau die Messung.
+   *
+   * **Diese Option verschwindet mit der Abnahme wieder** — sie ist ein
+   * Zeitfenster, keine Fassungsgrenze.
+   */
+  warnOhneFokus?: boolean;
+  /**
+   * Der Satz aus dem Mängel-Notizheft (Slice 9.2) — oder `null`.
+   *
+   * **Das ist der Grund, warum es die Funktion gibt.** Ein Zettel in der
+   * Overalltasche mahnt nichts an; diese Leiste schon. Gefragt wird **einmal je
+   * geöffneter Maske**, nicht bei jeder Regung in ihr: die Notizen ändern sich
+   * nicht, während die Maske offen ist, und `refresh()` läuft bei jeder
+   * Mutation.
+   *
+   * ponytail: Notizen, die während der offenen Maske vom Handy eintreffen,
+   * erscheinen erst beim nächsten Öffnen. Upgrade-Pfad wäre ein Zuhörer am
+   * Speicher — den gibt es, wenn Slice 9.5 steht und das überhaupt vorkommt.
+   *
+   * Fehlt die Zusage ganz, gibt es keinen Hinweis. Die Leiste verhält sich dann
+   * exakt wie vor Funktion 9.
+   */
+  notizen?: () => Promise<string | null>;
 }
 
 export interface AbschlussOverlayHandle {
@@ -119,6 +175,10 @@ export function createAbschlussOverlay(deps: AbschlussOverlayDeps): AbschlussOve
   const hinweis = document.createElement('span');
   hinweis.className = 'hinweis';
 
+  /** Der Hinweis aus dem Notizheft — steht vor den Feldern, er wiegt schwerer. */
+  const notizNode = document.createElement('span');
+  notizNode.className = 'notiz';
+
   /** Die Zeilen — je Feld eine, mit eigener Eingabe. */
   const felderNode = document.createElement('span');
   felderNode.className = 'felder';
@@ -127,7 +187,7 @@ export function createAbschlussOverlay(deps: AbschlussOverlayDeps): AbschlussOve
   const meldung = document.createElement('span');
   meldung.className = 'hinweis';
 
-  bar.append(hinweis, felderNode, meldung);
+  bar.append(notizNode, hinweis, felderNode, meldung);
   shadow.append(style, bar);
   document.body.append(host);
 
@@ -151,7 +211,11 @@ export function createAbschlussOverlay(deps: AbschlussOverlayDeps): AbschlussOve
     const current = dialog;
     if (current === null || !current.isConnected) return melde('Die Maske ist nicht mehr offen.', true);
 
-    const wert = eingabe.value.trim();
+    // Ein `month`- oder `date`-Feld gibt ISO heraus; das Produktionstool will
+    // `MM.JJJJ` beziehungsweise `TT.MM.JJJJ`. Bei einer unvollständigen Eingabe
+    // meldet der Browser selbst einen leeren Wert — dann greift die Zeile
+    // darunter, und es wird gar nichts geschrieben.
+    const wert = ausIso(eingabe.value.trim());
     if (wert === '') return melde(`Bitte erst einen Wert für ${name} eingeben.`, true);
 
     const ziel = deps.read(current).find(({ feld }) => feld.name === name);
@@ -161,20 +225,51 @@ export function createAbschlussOverlay(deps: AbschlussOverlayDeps): AbschlussOve
     // allein hielte das für einen Erfolg.
     if (checkField(ziel.input) !== null) return melde(`${name} lässt sich gerade nicht beschreiben.`, true);
 
-    if (!deps.write(ziel.input, wert)) {
+    const geschrieben = deps.write(ziel.input, wert);
+    if (!geschrieben.accepted) {
       return melde(`Das Produktionstool hat „${wert}" verworfen — ${name} steht unverändert.`, true);
+    }
+    // Der Wert steht, aber ohne Fokus hat das Formular ihn nicht als berührt
+    // verbucht: die Pflichtangabe bleibt rot, die Fachlogik rechnet mit dem
+    // alten Stand weiter. Das als schlichten Erfolg zu melden wäre die
+    // gefährlichere Hälfte der Wahrheit — der Prüfer soll wissen, dass er
+    // einmal selbst ins Feld muss.
+    if (!geschrieben.focused && deps.warnOhneFokus !== false) {
+      return melde(
+        `${name}: ${wert} steht im Feld, die Maske hat es aber nicht übernommen — ` +
+          'bitte die Maske schließen und einmal selbst ins Feld tippen.',
+        true,
+      );
     }
     melde(`${name}: ${wert} eingetragen. ${NACHZIEHEN}`, false);
   };
 
-  const zeile = (name: string): HTMLElement => {
+  const zeile = ({ name, typ }: AbschlussFeld): HTMLElement => {
     const feld = document.createElement('label');
     feld.className = 'feld';
     feld.textContent = name;
 
     const eingabe = document.createElement('input');
     eingabe.className = 'wert';
-    eingabe.type = 'text';
+    // **Der Typ macht die Bedienung, nicht wir.** `month` und `date` bringen
+    // Pfeiltasten, Tastatureingabe und einen Wähler mit; ein Kilometerstand
+    // bekommt mit `number` die Ziffern-Tastatur und wehrt Buchstaben ab.
+    eingabe.type = typ;
+
+    // …bis auf die Kürzel, die das Produktionstool an seinen eigenen Feldern
+    // kennt. Wer zwischen beiden Masken wechselt, soll nicht umdenken müssen:
+    // `A`/`N`/`L` und monatsweise Pfeiltasten im Monatsfeld, `H`/`G` im
+    // Datumsfeld. Alles andere bleibt die eingebaute Bedienung des Feldes.
+    if (typ === 'month' || typ === 'date') {
+      eingabe.addEventListener('keydown', (event: KeyboardEvent) => {
+        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+        const wert =
+          typ === 'month' ? monatTaste(event.key, eingabe.value) : datumTaste(event.key);
+        if (wert === null) return;
+        event.preventDefault();
+        eingabe.value = wert;
+      });
+    }
 
     const knopf = document.createElement('button');
     knopf.type = 'button';
@@ -195,7 +290,11 @@ export function createAbschlussOverlay(deps: AbschlussOverlayDeps): AbschlussOve
     const felder = deps.read(current);
     // Nichts angemahnt, was wir erreichen — dann gibt es auch nichts
     // anzubieten. Angemeldet bleibt alles: die Liste kann noch kommen.
-    bar.hidden = felder.length === 0;
+    //
+    // **Der Notiz-Hinweis hält die Leiste aber allein offen** (Slice 9.2): dass
+    // die Maske nichts vermisst, heißt nicht, dass der Prüfer nichts vergessen
+    // hat. Genau dieser Fall ist der, für den es das Notizheft gibt.
+    bar.hidden = felder.length === 0 && notizNode.textContent === '';
     if (felder.length === 0) return;
 
     const namen = felder.map(({ feld }) => feld.name);
@@ -206,7 +305,7 @@ export function createAbschlussOverlay(deps: AbschlussOverlayDeps): AbschlussOve
     gezeigt = namen.join(', ');
 
     hinweis.textContent = 'Diese Maske vermisst:';
-    felderNode.replaceChildren(...namen.map(zeile));
+    felderNode.replaceChildren(...felder.map(({ feld }) => zeile(feld)));
     melde('', false);
   };
 
@@ -218,12 +317,28 @@ export function createAbschlussOverlay(deps: AbschlussOverlayDeps): AbschlussOve
       dialog = next;
       observer.observe(next, { childList: true, subtree: true, characterData: true });
       refresh();
+
+      // Einmal je geöffneter Maske gefragt — siehe `notizen` in den Deps. Der
+      // Fehlschlag bleibt still: das Heft ist eine Erinnerung, und nichts an der
+      // Prüfung hängt daran. Eine Fehlermeldung an dieser Stelle stünde dem
+      // Prüfer im Weg, ohne ihm etwas zu sagen.
+      void deps
+        .notizen?.()
+        .then((satz) => {
+          // Die Maske kann in der Zwischenzeit zu sein — dann gehört der Satz
+          // zu einem Auftrag, der nicht mehr auf dem Bildschirm steht.
+          if (dialog !== next || !next.isConnected) return;
+          notizNode.textContent = satz ?? '';
+          if (satz !== null) bar.hidden = false;
+        })
+        .catch(() => undefined);
     },
     detach() {
       observer.disconnect();
       dialog = null;
       bar.hidden = true;
       hinweis.textContent = '';
+      notizNode.textContent = '';
       felderNode.replaceChildren();
       melde('', false);
       // Sonst hielte die nächste Maske ihre Zeilen für längst gezeichnet.

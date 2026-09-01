@@ -294,7 +294,7 @@ describe('Einfügen (Plan-Punkt 51)', () => {
   });
 });
 
-describe('Zustand aus dem Service Worker', () => {
+describe('Zustand aus loadPanel()', () => {
   it('zeigt den Hinweis über veralteten Bestand', async () => {
     harness.overlay.destroy();
     const overlay = createOverlay({

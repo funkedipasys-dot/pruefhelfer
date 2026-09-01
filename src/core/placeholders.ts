@@ -1,17 +1,16 @@
 /**
- * Platzhalter-Grammatik der Textbausteine — Spiegel des Backends.
+ * Platzhalter-Grammatik der Textbausteine — **die eine Fassung für alle Wege.**
  *
- * Die Zerlegung ist zeichengleich zu
- * `egub-lexoffice-backend/src/application/utils/textbaustein-placeholder.util.ts`
- * portiert. Das ist kein Zufall und keine Bequemlichkeit: das Backend lehnt
- * einen Baustein beim Speichern ab, wenn er der Grammatik nicht entspricht.
- * Würde die Extension anders zerlegen, entstünde genau der Fall, den Plan-Punkt
- * 47 ausschließt — ein Text, den der eine Weg akzeptiert und der andere nicht.
+ * Sie ist zeichengleich zu der Prüfung portiert, an der ein zentral gepflegter
+ * Bestand beim Anlegen gemessen wird. Das ist kein Zufall und keine
+ * Bequemlichkeit: würde hier anders zerlegt, entstünde genau der Fall, den
+ * Plan-Punkt 47 ausschließt — ein Text, den der eine Weg akzeptiert und der
+ * andere nicht.
  *
- * Neu gegenüber dem Backend ist nur die **Substitution**: das Backend validiert
- * bloß, einsetzen muss die Extension. Damit beide Wege — Overlay-Einfügen und
- * Popup-Kopieren — nicht auseinanderlaufen können, teilen sie sich denselben
- * Scanner (`scanTextbaustein`); `parseTextbausteinText` und
+ * Neu gegenüber der reinen Prüfung ist die **Substitution**: geprüft wird
+ * vielerorts, einsetzen muss die Erweiterung. Damit beide Wege —
+ * Overlay-Einfügen und Popup-Kopieren — nicht auseinanderlaufen können, teilen
+ * sie sich denselben Scanner (`scanTextbaustein`); `parseTextbausteinText` und
  * `substituteTextbaustein` sind beide daraus abgeleitet.
  *
  * Gezählt wird in UTF-16-Code-Units (`String.length`) — dieselbe Einheit, die
@@ -109,7 +108,7 @@ export function scanTextbaustein(text: string): ScannedTextbausteinText {
 }
 
 /**
- * Zerlegung plus die Kennzahlen, die das Backend beim Speichern prüft.
+ * Zerlegung plus die Kennzahlen, an denen ein Baustein beim Anlegen gemessen wird.
  *
  * Die Mindestlänge zählt **je Vorkommen, nicht je eindeutigem Namen**:
  * `{{mm}}` zehnmal verwendet kostet nach der Substitution mindestens zehn
@@ -184,7 +183,13 @@ export function substituteTextbaustein(
     return { ok: false, reason: 'invalid_text', issues: parsed.issues };
   }
 
-  const trimmed = new Map(parsed.names.map((name) => [name, (values[name] ?? '').trim()]));
+  // `Object.hasOwn`, nicht `values[name] ?? ''`: die Grammatik lässt `constructor`
+  // als Platzhalternamen zu, und ein Objektliteral **erbt** den. `{{constructor}}`
+  // ohne passenden Wert lieferte damit die Konstruktorfunktion statt `undefined`
+  // — `.trim()` darauf wirft, statt dass sauber „Wert fehlt" gemeldet wird.
+  const trimmed = new Map(
+    parsed.names.map((name) => [name, (Object.hasOwn(values, name) ? values[name] ?? '' : '').trim()]),
+  );
 
   const missing = parsed.names.filter((name) => trimmed.get(name) === '');
   if (missing.length > 0) {

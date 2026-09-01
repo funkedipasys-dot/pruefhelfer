@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
-import { ABSCHLUSS_FELDER, angemahnteFelder, findAbschlussDialog, normalisiere } from './abschluss';
+import { ABSCHLUSS_FELDER, angemahnteFelder, ausIso, findAbschlussDialog, normalisiere } from './abschluss';
 
 const HU = ABSCHLUSS_FELDER[0]!;
 const UMA = ABSCHLUSS_FELDER[1]!;
+const KM = ABSCHLUSS_FELDER[2]!;
 
 /** Die Maske, wie das CDK sie einhängt: außerhalb des Formulars, am Body. */
 function maske(...meldungen: string[]): HTMLElement {
@@ -52,9 +53,16 @@ it('bietet nichts an, was die Maske nicht anmahnt', () => {
 });
 
 it('bietet nichts an, wenn das Feld hinter der Maske fehlt — UMA gibt es nicht immer', () => {
-  const pane = maske('UMA Datum nicht gesetzt');
+  const pane = maske('Datum der beigestellten UMA nicht gesetzt');
 
   expect(angemahnteFelder(pane)).toEqual([]);
+});
+
+it('erkennt die UMA am gemessenen Wortlaut, nicht am Feldnamen', () => {
+  const pane = maske('Datum der beigestellten UMA nicht gesetzt');
+  const input = feld(UMA.selector);
+
+  expect(angemahnteFelder(pane)).toEqual([{ feld: UMA, input }]);
 });
 
 it('liest über Elementgrenzen hinweg — textContent klebt ohne Leerzeichen zusammen', () => {
@@ -65,6 +73,23 @@ it('liest über Elementgrenzen hinweg — textContent klebt ohne Leerzeichen zus
   const input = feld(HU.selector);
 
   expect(angemahnteFelder(pane)).toEqual([{ feld: HU, input }]);
+});
+
+it('bietet den Kilometerstand an, wenn die Maske ihn anmahnt', () => {
+  const pane = maske('Fahrzeug Laufleistung nicht gesetzt');
+  const input = feld(KM.selector);
+
+  expect(angemahnteFelder(pane)).toEqual([{ feld: KM, input }]);
+});
+
+it('rechnet ISO in die Schreibweise des Produktionstools um', () => {
+  // Monatsgenau die HU-Fälligkeit, tagesgenau das UMA-Datum.
+  expect(ausIso('2026-08')).toBe('08.2026');
+  expect(ausIso('2026-08-17')).toBe('17.08.2026');
+  // Ein Kilometerstand ist kein Datum und bleibt, wie er ist — ebenso alles,
+  // was hier nicht verstanden wird.
+  expect(ausIso('184731')).toBe('184731');
+  expect(ausIso('')).toBe('');
 });
 
 it('dampft Text auf den Wortkern ein', () => {

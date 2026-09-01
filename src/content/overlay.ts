@@ -36,7 +36,10 @@ export interface OverlayDeps {
   /**
    * Wird bei jedem Öffnen neu abgefragt — der Bestand kann sich seit dem
    * letzten Öffnen geändert haben. Bestand und Hinweis kommen zusammen, weil
-   * sie aus derselben Antwort des Service Workers stammen.
+   * sie aus derselben Auskunft stammen.
+   *
+   * **Darf werfen.** Der Chooser fängt es und sagt es; ein Ausfall soll nicht
+   * als leerer Bestand durchgehen.
    */
   loadPanel: () => Promise<PanelContents>;
   /**

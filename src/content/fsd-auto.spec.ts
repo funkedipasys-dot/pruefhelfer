@@ -59,6 +59,62 @@ function runButton(): HTMLButtonElement {
   return button;
 }
 
+/**
+ * Eine virtualisierte Auftragsliste wie die echte: nur ein Fenster von Zeilen
+ * liegt im DOM, beim Scrollen werden sie ausgetauscht.
+ *
+ * Nachgebaut nach der Messung vom 2026-08-21 (DEV-Fassung, echte Liste): 24
+ * Aufträge, davon 8 gleichzeitig gerendert, Zeilenhöhe 174 px, IDs über das
+ * Scrollen stabil.
+ */
+function baueVirtuelleListe(gesamt: number, sichtbar: number): { geklickt: string[] } {
+  const ZEILEN_HOEHE = 174;
+  const geklickt: string[] = [];
+
+  const liste = document.createElement('div');
+  liste.id = 'auftrag-liste';
+  const viewport = document.createElement('cdk-virtual-scroll-viewport');
+  liste.append(viewport);
+  document.body.append(liste);
+
+  Object.defineProperty(viewport, 'clientHeight', { value: sichtbar * ZEILEN_HOEHE });
+  Object.defineProperty(viewport, 'scrollHeight', { value: gesamt * ZEILEN_HOEHE });
+
+  const uuid = (i: number): string => {
+    const n = String(i).padStart(2, '0');
+    return `${n}${n}${n}${n}-${n}${n}-4${n}1-8${n}1-${n}${n}${n}${n}${n}${n}`;
+  };
+
+  let top = 0;
+  const male = (): void => {
+    const erste = Math.min(Math.floor(top / ZEILEN_HOEHE), Math.max(0, gesamt - sichtbar));
+    viewport.replaceChildren(
+      ...Array.from({ length: Math.min(sichtbar, gesamt) }, (_, i) => {
+        const id = `auftrag-liste-auftrag-${uuid(erste + i)}`;
+        const zeile = document.createElement('app-auftrag-liste-element');
+        zeile.className = 'auftrag-liste-element';
+        zeile.id = id;
+        const klick = document.createElement('div');
+        klick.className = 'auftrag-element';
+        klick.addEventListener('click', () => geklickt.push(id));
+        zeile.append(klick);
+        return zeile;
+      }),
+    );
+  };
+
+  Object.defineProperty(viewport, 'scrollTop', {
+    get: () => top,
+    set: (value: number) => {
+      top = Math.max(0, Math.min(value, gesamt * ZEILEN_HOEHE));
+      male();
+    },
+  });
+
+  male();
+  return { geklickt };
+}
+
 function start(trusted = true): FsdAutoHandle {
   automation = createFsdAuto({
     label: 'GINO · Prüfhelfer 0.7.0',
@@ -259,7 +315,9 @@ describe('FSD-Automatik – DOM-Controller', () => {
       // Bestandszeilen — die Automatik würde sie nie anfassen.
       expect(firstClick).toHaveBeenCalledTimes(1);
       expect(secondClick).not.toHaveBeenCalled();
-      expect(toggle().textContent).toContain('Durchklicken: 1 / 2');
+      // Kein Nenner mehr: seit Slice 1.7 wird je Schritt neu gelesen, die
+      // Gesamtzahl kennt der Durchlauf erst, wenn er unten angekommen ist.
+      expect(toggle().textContent).toContain('Durchklicken: 1');
 
       await vi.advanceTimersByTimeAsync(9_999);
       expect(secondClick).not.toHaveBeenCalled();
@@ -269,6 +327,35 @@ describe('FSD-Automatik – DOM-Controller', () => {
       await vi.advanceTimersByTimeAsync(10_000);
       expect(toggle().textContent).toContain('Durchklicken fertig · 2');
       expect(runButton().textContent).toBe('Alle durchklicken');
+    });
+
+    it('klickt auch die Zeilen, die erst durch Scrollen ins DOM kommen (Slice 1.7)', async () => {
+      // Christians Befund vom 2026-08-21: 24 Aufträge, 8 gleichzeitig sichtbar.
+      const liste = baueVirtuelleListe(24, 8);
+      start();
+
+      runButton().click();
+      // 24 Klicks à 10 s, dazu die kurzen Pausen fürs Scrollen.
+      await vi.advanceTimersByTimeAsync(24 * 10_000 + 5_000);
+
+      expect(liste.geklickt).toHaveLength(24);
+      // Jede genau einmal — die Zeilen kommen beim Scrollen mehrfach vorbei.
+      expect(new Set(liste.geklickt).size).toBe(24);
+      // Die Fertig-Meldung ist zu diesem Zeitpunkt schon abgelaufen; dass der
+      // Durchlauf beendet ist, sagt der Knopf.
+      expect(runButton().textContent).toBe('Alle durchklicken');
+    });
+
+    it('fängt oben an, auch wenn der Prüfer vorher nach unten gescrollt hat', async () => {
+      const liste = baueVirtuelleListe(24, 8);
+      const viewport = document.querySelector('cdk-virtual-scroll-viewport') as HTMLElement;
+      viewport.scrollTop = 24 * 174;
+      start();
+
+      runButton().click();
+      await vi.advanceTimersByTimeAsync(24 * 10_000 + 5_000);
+
+      expect(liste.geklickt).toHaveLength(24);
     });
 
     it('überspringt eine zwischenzeitlich verschwundene Zeile und läuft weiter', async () => {

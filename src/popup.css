@@ -85,3 +85,75 @@ section[hidden] { display: none; }
 .diagnostics dd { margin: 0; }
 
 #chooser { display: flex; flex-direction: column; max-height: 340px; }
+
+/* Mängel-Notizheft (Funktion 9, Slice 9.1).
+   Es ersetzt den handgeschriebenen Zettel — deshalb steht das Eingabefeld
+   oben und ist der erste Griff, nicht der letzte. */
+#notizheft { border-top: 1px solid #e0e0e0; padding-bottom: 8px; }
+
+#notizheft h2 {
+  margin: 8px 8px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #565656;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+#notizheft .row { display: flex; gap: 6px; padding: 0 8px; }
+
+#notiz-text {
+  font: inherit;
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid #cbcdcf;
+  border-radius: 999px;
+  background: #f2f2f2;
+}
+
+#notiz-text:focus { outline: none; border-color: #da1f3d; background: #fff; }
+#notiz-text:disabled { color: #999; }
+
+#notiz-anlegen {
+  font: inherit;
+  padding: 4px 14px;
+  border: 1px solid #da1f3d;
+  border-radius: 999px;
+  background: #da1f3d;
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#notiz-anlegen:hover:not(:disabled) { background: #b81a34; border-color: #b81a34; }
+#notiz-anlegen:disabled { background: #cbcdcf; border-color: #cbcdcf; cursor: default; }
+
+.notizen { margin: 8px 0 0; padding: 0 8px; list-style: none; }
+.notizen:empty { display: none; }
+
+.notizen li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.notizen li span { flex: 1; overflow-wrap: anywhere; }
+
+/* Erledigt heißt durchgestrichen, nicht weg: wer eine Notiz abhakt, ohne dass
+   daraus ein Mangel wurde, soll das später noch sehen können. */
+.notizen li.erledigt span { color: #999; text-decoration: line-through; }
+
+.notizen li button {
+  font: inherit;
+  padding: 0 6px;
+  border: 1px solid #cbcdcf;
+  border-radius: 999px;
+  background: #fff;
+  color: #565656;
+  cursor: pointer;
+}
+
+.notizen li button:hover { border-color: #0b6a0b; color: #0b6a0b; }

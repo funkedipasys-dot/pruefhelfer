@@ -135,7 +135,7 @@ describe('Offene Fassung ohne Server (Plan-Punkt 71-73)', () => {
   it('nennt im Popup keine weitere Adresse', () => {
     const erlaubt = [
       'https://raw.githubusercontent.com/funkedipasys-dot/pruefhelfer/main/src/light/manifest.json',
-      'https://github.com/funkedipasys-dot/pruefhelfer/releases/latest',
+      'https://github.com/funkedipasys-dot/pruefhelfer/releases',
     ];
     const gefunden = [...new Set(lightPopup.match(/https?:\/\/[^"'`\s)]+/g) ?? [])];
 

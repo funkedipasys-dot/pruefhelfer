@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { buildInsertion, effectiveLimit } from '../core/insertion';
-import { applyInsertion, checkField } from './field';
+import { applyInsertion, checkField, writeFieldValue } from './field';
 
 const TEXT = 'Bremsbelag vorne bei {{km}} km erneuern.';
 
@@ -44,6 +44,72 @@ describe('checkField', () => {
     const field = makeField();
     field.style.display = 'none';
     expect(checkField(field)).toBe('hidden');
+  });
+
+  /**
+   * Der Fall, den die vier Prüfungen davor **nicht** sehen: ein `inert`-Feld
+   * meldet `disabled === false`, `readOnly === false` und eine ganz normale
+   * berechnete Darstellung. Genau das legt der CDK über den Hintergrund, sobald
+   * ein Material-Dialog offen ist — also über das Feld, in das die
+   * Abschluss-Leiste schreiben will.
+   */
+  it('erkennt ein Feld hinter einem inerten Vorfahren', () => {
+    const huelle = document.createElement('div');
+    huelle.setAttribute('inert', '');
+    document.body.append(huelle);
+    const field = makeField();
+    huelle.append(field);
+
+    expect(field.disabled).toBe(false);
+    expect(field.readOnly).toBe(false);
+    expect(checkField(field)).toBe('inert');
+  });
+
+  it('erkennt auch ein Feld, das selbst inert ist', () => {
+    const field = makeField();
+    field.setAttribute('inert', '');
+    expect(checkField(field)).toBe('inert');
+  });
+});
+
+/**
+ * Die Gegenprüfung, an der die Abschluss-Leiste hängt.
+ *
+ * `accepted` allein genügt nicht: der Wert kann im Feld stehen, während die
+ * Fokus-Klammer wirkungslos blieb — dann hält das Formular das Feld weiter für
+ * unberührt und rechnet mit dem alten Stand weiter.
+ */
+describe('writeFieldValue', () => {
+  it('meldet Wert und Fokus, wenn beides durchkommt', () => {
+    const field = makeField();
+    expect(writeFieldValue(field, 'Neuer Text')).toEqual({ accepted: true, focused: true });
+    expect(field.value).toBe('Neuer Text');
+  });
+
+  it('meldet den fehlenden Fokus, obwohl der Wert steht', () => {
+    const field = makeField();
+    // Ein Focus-Trap holt den Fokus sofort zurück. Nachgestellt über einen
+    // Zuhörer, der genau das tut — die Wirkung ist dieselbe: nach `focus()`
+    // ist das Feld nicht das aktive Element.
+    const anderes = document.createElement('input');
+    document.body.append(anderes);
+    field.addEventListener('focus', () => anderes.focus());
+
+    const outcome = writeFieldValue(field, 'Neuer Text');
+
+    expect(field.value).toBe('Neuer Text');
+    expect(outcome.accepted).toBe(true);
+    expect(outcome.focused).toBe(false);
+  });
+
+  it('meldet einen zurückgeschriebenen Wert als nicht angenommen', () => {
+    const field = makeField();
+    // Wie ein eigener Formatierer der Anwendung, der auf `input` hört.
+    field.addEventListener('input', () => {
+      field.value = 'etwas anderes';
+    });
+
+    expect(writeFieldValue(field, 'Neuer Text').accepted).toBe(false);
   });
 });
 

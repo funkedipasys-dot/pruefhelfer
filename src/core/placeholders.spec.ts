@@ -7,14 +7,15 @@ import {
 } from './placeholders';
 
 /**
- * Der erste Block spiegelt `test/textbaustein-placeholder.util.spec.ts` aus dem
- * Backend Fall für Fall. Weicht die Extension hier ab, akzeptiert sie einen
- * Baustein, den das Backend beim Speichern abgelehnt hätte — oder umgekehrt.
+ * Der erste Block spiegelt die Prüfung, an der ein zentral gepflegter Bestand
+ * beim Anlegen gemessen wird, Fall für Fall. Weicht die Erweiterung hier ab,
+ * akzeptiert sie einen Baustein, den der andere Weg abgelehnt hätte — oder
+ * umgekehrt.
  *
- * Der zweite Block deckt ab, was es im Backend nicht gibt: die Substitution und
- * die Prüfung gegen die Feldgrenze **nach** dem Einsetzen (Plan-Punkt 50).
+ * Der zweite Block deckt ab, was dort nicht vorkommt: die Substitution und die
+ * Prüfung gegen die Feldgrenze **nach** dem Einsetzen (Plan-Punkt 50).
  */
-describe('parseTextbausteinText — Spiegel der Backend-Grammatik', () => {
+describe('parseTextbausteinText — Spiegel der gemeinsamen Grammatik', () => {
   describe('gültige Grammatik', () => {
     it('erkennt einen einfachen Platzhalter', () => {
       const parsed = parseTextbausteinText('Kennzeichen {{kennzeichen}} geprüft.');

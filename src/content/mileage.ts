@@ -124,7 +124,7 @@ export function applyMileage(field: HTMLInputElement, value: number): MileageRes
     return { ok: false, message: `${next} passt nicht in das Feld.` };
   }
 
-  if (!writeFieldValue(field, next)) {
+  if (!writeFieldValue(field, next).accepted) {
     return { ok: false, message: 'Das Produktionstool hat die Eingabe verworfen. Bitte erneut versuchen.' };
   }
 

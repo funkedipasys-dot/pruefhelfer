@@ -36,6 +36,38 @@ export const FSD_ORDER_SELECTOR =
  */
 export const FSD_ORDER_CLICK_SELECTOR = '.auftrag-element';
 
+/**
+ * Das virtuelle Sichtfenster der Auftragsliste (Slice 1.7).
+ *
+ * **Gemessen am 2026-08-21** mit der DEV-Fassung, an einer Liste mit 24
+ * Aufträgen: gleichzeitig im DOM lagen **8** — alles darunter existierte nicht.
+ * Genau das war Christians Befund „mehr als sieben werden nicht erkannt".
+ *
+ * Zwei Werte aus derselben Messung tragen den Umbau:
+ * `scrollTop` selbst zu setzen rendert **sofort** nach (erste neue Zeile nach
+ * 0 ms), und die Zeilen-IDs bleiben über das Scrollen hinweg **stabil** —
+ * Angular vergibt beim Neurendern dieselben. Ohne beides wäre der Durchlauf
+ * unten nicht baubar gewesen.
+ */
+export const FSD_LIST_VIEWPORT_SELECTOR = '#auftrag-liste cdk-virtual-scroll-viewport';
+
+/** Wie weit je Halt gescrollt wird: eine Seite mit Überlappung. */
+const SCROLL_ANTEIL = 0.8;
+
+/**
+ * Kurze Pause nach einem Scrollsprung, bevor neu gelesen wird. Gemessen hat
+ * das Nachrendern 0 ms gebraucht; ein Lidschlag Puffer kostet nichts und
+ * deckt einen langsameren Rechner ab.
+ */
+const SCROLL_SETTLE_MS = 60;
+
+/**
+ * Notbremse gegen eine Liste, die beim Klicken an den Anfang zurückspringt.
+ * Ein Durchlauf, der nur noch scrollt und nichts mehr klickt, endet dann von
+ * selbst, statt endlos weiterzulaufen.
+ */
+const MAX_SCROLL_SCHRITTE = 100;
+
 const ORDER_ID =
   /^auftrag-liste-auftrag-([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i;
 const OPENED_MESSAGE_MS = 3_000;
@@ -152,10 +184,23 @@ export function createFsdAuto(options: FsdAutoOptions): FsdAutoHandle {
   let offReason: string | null = null;
 
   // Der ausdrückliche Durchlauf ist bewusst **kein** Zustand des Kerns: er
-  // fragt nicht, ob etwas neu ist, sondern arbeitet eine beim Start gezogene
-  // Liste stumpf ab. Eine feste Liste ist hier das Richtige — käme während des
-  // Laufs ein Auftrag dazu, gehört er der Automatik, nicht diesem Durchlauf.
-  let run: { ids: string[]; index: number } | null = null;
+  // fragt nicht, ob etwas neu ist, sondern arbeitet die Liste ab.
+  //
+  // **Kein Schnappschuss mehr (Slice 1.7, 2026-08-21).** Bis dahin zog der
+  // Start die IDs einmalig und klickte sie der Reihe nach. Bei einer
+  // virtualisierten Liste sind das nur die acht gerade sichtbaren — der Rest
+  // stand nie im DOM, und die Meldung „fertig · 8" behauptete Vollständigkeit
+  // über einer Liste von 24. Jetzt wird **je Schritt neu gelesen**: geklickt
+  // wird die erste noch nicht geklickte Zeile, und ist keine mehr da, wird eine
+  // Seite weitergescrollt. Damit wird nie eine ID geklickt, die gerade nicht im
+  // DOM steht — der frühere stille Fehlschlag entfällt von selbst.
+  //
+  // Was dabei aus dem alten Kommentar bleibt: käme während des Laufs ein
+  // Auftrag dazu, gehört er der Automatik. Er wird hier trotzdem mitgenommen,
+  // wenn er unterwegs ins Sichtfenster gerät — das ist der Preis dafür, dass
+  // „alle" jetzt wirklich alle heißt, und ein geöffneter Auftrag zu viel ist
+  // harmloser als zwei Drittel nie geöffnet.
+  let run: { geklickt: Set<string>; scrollSchritte: number } | null = null;
   let runTimer: number | null = null;
   const betweenOpensMs = options.betweenOpensMs ?? FSD_BETWEEN_OPENS_MS;
 
@@ -193,6 +238,18 @@ export function createFsdAuto(options: FsdAutoOptions): FsdAutoHandle {
 
   const readRows = (): FsdOrderRow[] => readFsdOrderRows(doc);
 
+  /**
+   * Die Gesamthöhe der Auftragsliste — das Signal, an dem die Automatik seit
+   * Slice 1.8 erkennt, dass ein Auftrag dazugekommen ist (`fsd-auto-core.ts`).
+   * Sie beschreibt **alle** Aufträge, auch die nie gerenderten; beim Scrollen
+   * bleibt sie konstant.
+   *
+   * `null` heißt „kein Sichtfenster gefunden" — dann fällt der Kern auf die
+   * alte Regel zurück und verhält sich wie vor Slice 1.8.
+   */
+  const listenHoehe = (): number | null =>
+    doc.querySelector<HTMLElement>(FSD_LIST_VIEWPORT_SELECTOR)?.scrollHeight ?? null;
+
   const render = (): void => {
     const current = core.snapshot();
     const currentTime = now();
@@ -204,7 +261,10 @@ export function createFsdAuto(options: FsdAutoOptions): FsdAutoHandle {
     // Ein laufender Durchlauf ist das, was der Prüfer gerade angestoßen hat —
     // seine Fortschrittsanzeige geht allem anderen vor.
     if (run !== null) {
-      state.textContent = `Durchklicken: ${run.index} / ${run.ids.length}`;
+      // Ohne Schnappschuss gibt es keinen Nenner: wie viele Aufträge die Liste
+      // insgesamt hat, wüsste man erst, wenn man einmal ganz durchgescrollt
+      // wäre — und das ist genau das, was der Durchlauf gerade tut.
+      state.textContent = `Durchklicken: ${run.geklickt.size}`;
       return;
     }
 
@@ -254,25 +314,42 @@ export function createFsdAuto(options: FsdAutoOptions): FsdAutoHandle {
     wakeTimer = view.setTimeout(runWake, Math.max(0, nextAt - currentTime));
   };
 
+  /**
+   * **Übersprungene werden gesammelt, nicht überschrieben.** Der Durchlauf zieht
+   * in einem Wake alle fälligen Kandidaten, bis einer klickbar ist; jeder
+   * vorherige gilt danach als abgehakt. Wurde je Fehlschlag nur die
+   * `transientMessage` neu gesetzt, sah der Prüfer am Ende einen einzigen Namen
+   * — und hielt die anderen für geöffnet, obwohl sie stillschweigend wegfielen.
+   */
   const processDue = (currentTime: number): void => {
+    const uebersprungen: string[] = [];
     let candidate: FsdCandidate | null;
+    let geoeffnet: string | null = null;
+
     while ((candidate = core.takeDue(currentTime)) !== null) {
       const row = resolveFsdOrder(doc, candidate.id);
       if (row === null) {
-        transientMessage = { text: `${candidate.label} übersprungen`, until: currentTime + OPENED_MESSAGE_MS };
+        uebersprungen.push(candidate.label);
         continue;
       }
 
       try {
         row.click();
         core.recordOpened(currentTime);
-        transientMessage = { text: `${candidate.label} geöffnet`, until: currentTime + OPENED_MESSAGE_MS };
+        geoeffnet = candidate.label;
       } catch {
-        transientMessage = { text: `${candidate.label} übersprungen`, until: currentTime + OPENED_MESSAGE_MS };
+        uebersprungen.push(candidate.label);
       }
       // Ein erfolgreicher Klick setzt den 10-Sekunden-Abstand. Deshalb endet
       // dieser Wake hier; ein weiterer fälliger Auftrag bekommt einen neuen.
       break;
+    }
+
+    const teile: string[] = [];
+    if (uebersprungen.length > 0) teile.push(`${uebersprungen.join(', ')} übersprungen`);
+    if (geoeffnet !== null) teile.push(`${geoeffnet} geöffnet`);
+    if (teile.length > 0) {
+      transientMessage = { text: teile.join(' · '), until: currentTime + OPENED_MESSAGE_MS };
     }
   };
 
@@ -298,7 +375,7 @@ export function createFsdAuto(options: FsdAutoOptions): FsdAutoHandle {
   const activate = (): void => {
     offReason = null;
     transientMessage = null;
-    core.enable(readRows(), now());
+    core.enable(readRows(), now(), listenHoehe());
     render();
     schedule();
   };
@@ -322,43 +399,80 @@ export function createFsdAuto(options: FsdAutoOptions): FsdAutoHandle {
    * übersprungen, nicht abgebrochen — die Liste ist live, und ein einzelner
    * Ausfall darf den Rest des Durchlaufs nicht kosten.
    */
+  /**
+   * Scrollt die Liste eine Seite weiter. `false` heißt „unten angekommen" —
+   * und damit endet der Durchlauf.
+   *
+   * Ohne Sichtfenster (Liste nicht mehr virtualisiert, oder Selektor gebrochen)
+   * gibt es nichts zu scrollen; dann arbeitet der Durchlauf genau das ab, was
+   * im DOM steht. Das ist derselbe Umfang wie vor Slice 1.7 — kein Rückschritt,
+   * nur kein Gewinn.
+   */
+  const scrolleWeiter = (): boolean => {
+    const viewport = doc.querySelector<HTMLElement>(FSD_LIST_VIEWPORT_SELECTOR);
+    if (viewport === null) return false;
+
+    const maximum = viewport.scrollHeight - viewport.clientHeight;
+    if (viewport.scrollTop >= maximum - 1) return false;
+
+    const schritt = Math.max(1, Math.round(viewport.clientHeight * SCROLL_ANTEIL));
+    viewport.scrollTop = Math.min(maximum, viewport.scrollTop + schritt);
+    // Angular hängt am `scroll`-Ereignis; ein gesetztes `scrollTop` löst es
+    // nicht überall von selbst aus.
+    viewport.dispatchEvent(new view.Event('scroll'));
+    return true;
+  };
+
   const runStep = (): void => {
     runTimer = null;
     if (destroyed || run === null) return;
+    const aktuell = run;
 
-    const id = run.ids[run.index];
-    if (id === undefined) {
-      const total = run.ids.length;
-      stopRun(`Durchklicken fertig · ${total}`);
+    const naechste = readRows().find((row) => row.eligible && !aktuell.geklickt.has(row.id));
+    if (naechste !== undefined) {
+      aktuell.geklickt.add(naechste.id);
+      aktuell.scrollSchritte = 0;
+      try {
+        resolveFsdOrder(doc, naechste.id)?.click();
+      } catch {
+        // Eine einzelne unklickbare Zeile beendet den Durchlauf nicht.
+      }
       render();
-      schedule();
+      runTimer = view.setTimeout(runStep, betweenOpensMs);
       return;
     }
 
-    run.index += 1;
-    try {
-      resolveFsdOrder(doc, id)?.click();
-    } catch {
-      // Eine einzelne unklickbare Zeile beendet den Durchlauf nicht.
+    // Im Sichtfenster ist nichts Ungeklicktes mehr — weiter nach unten sehen.
+    if (aktuell.scrollSchritte < MAX_SCROLL_SCHRITTE && scrolleWeiter()) {
+      aktuell.scrollSchritte += 1;
+      runTimer = view.setTimeout(runStep, SCROLL_SETTLE_MS);
+      return;
     }
+
+    stopRun(`Durchklicken fertig · ${aktuell.geklickt.size}`);
     render();
-    runTimer = view.setTimeout(runStep, betweenOpensMs);
+    schedule();
   };
 
   const startRun = (): void => {
-    const ids = readRows()
-      .filter((row) => row.eligible)
-      .map((row) => row.id);
-    if (ids.length === 0) {
+    if (!readRows().some((row) => row.eligible)) {
       transientMessage = { text: 'Keine Aufträge in der Liste', until: now() + OPENED_MESSAGE_MS };
       render();
       schedule();
       return;
     }
 
+    // Von oben anfangen, sonst hieße „alle" nur „alle ab hier": wer vor dem
+    // Klick nach unten gescrollt hat, verlöre die Aufträge darüber.
+    const viewport = doc.querySelector<HTMLElement>(FSD_LIST_VIEWPORT_SELECTOR);
+    if (viewport !== null && viewport.scrollTop > 0) {
+      viewport.scrollTop = 0;
+      viewport.dispatchEvent(new view.Event('scroll'));
+    }
+
     // Automatik und Durchlauf würden einander sonst die Klicks streitig machen.
     deactivate(null);
-    run = { ids, index: 0 };
+    run = { geklickt: new Set<string>(), scrollSchritte: 0 };
     runStep();
   };
 
@@ -416,7 +530,7 @@ export function createFsdAuto(options: FsdAutoOptions): FsdAutoHandle {
 
   const observer = new view.MutationObserver(() => {
     if (destroyed || core.snapshot().mode === 'off') return;
-    core.observe(readRows(), now());
+    core.observe(readRows(), now(), listenHoehe());
     render();
     schedule();
   });

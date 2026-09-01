@@ -451,14 +451,38 @@ export function createChooser(container: ParentNode, deps: ChooserDeps): Chooser
     const item = selected;
     if (item === null) return;
 
-    void Promise.resolve(deps.run(item, collectValues(valuesBox))).then((result) => {
-      if (result.ok) reset();
-      else setMessage(result.message);
-    });
+    // Über `Promise.resolve().then()` statt `Promise.resolve(deps.run(…))`:
+    // `deps.run` ist im Overlay **synchron** (es schreibt direkt ins Feld). Ein
+    // Wurf daraus fiele bei der zweiten Schreibweise an `Promise.resolve`
+    // vorbei und ließe den Knopf wirkungslos zurück, ohne eine Zeile Meldung.
+    void Promise.resolve()
+      .then(() => deps.run(item, collectValues(valuesBox)))
+      .then((result) => {
+        if (result.ok) reset();
+        else setMessage(result.message);
+      })
+      .catch(() => setMessage(`${deps.actionLabel} nicht möglich. Bitte die Seite neu laden.`));
   });
 
+  /**
+   * **Ein Fehlschlag darf nicht wie ein leerer Bestand aussehen.**
+   *
+   * `loadPanel()` greift je nach Fassung auf den Speicher oder auf den Service
+   * Worker zu, und beides kann werfen: Speicherkontingent, verwaistes
+   * Content-Script nach einem Neuladen der Erweiterung, abgestürzter Worker.
+   * Ohne diesen Riegel bliebe die Rejection unbehandelt, `renderList()` liefe
+   * nie — und der Prüfer läse „Keine Textbausteine gespeichert.", während seine
+   * Texte unangetastet auf der Platte liegen. Eine falsche Auskunft ist
+   * schlimmer als eine unangenehme.
+   */
   const refresh = async (): Promise<void> => {
-    const contents = await deps.loadPanel();
+    let contents: PanelContents;
+    try {
+      contents = await deps.loadPanel();
+    } catch {
+      setMessage('Die Textbausteine sind gerade nicht abrufbar. Bitte die Seite neu laden.');
+      return;
+    }
     bausteine = contents.bausteine;
     hint.textContent = contents.hint ?? '';
     renderList();
@@ -494,15 +518,20 @@ export function createChooser(container: ParentNode, deps: ChooserDeps): Chooser
     const manage = deps.manage;
     if (manage === undefined) return;
 
-    void manage.save({ id: editing, titel: titelInput.value, text: textInput.value }).then(async (result) => {
-      if (!result.ok) {
-        setMessage(result.message);
-        return;
-      }
-      await refresh();
-      reset();
-      setMessage('Gespeichert.', true);
-    });
+    void Promise.resolve()
+      .then(() => manage.save({ id: editing, titel: titelInput.value, text: textInput.value }))
+      .then(async (result) => {
+        if (!result.ok) {
+          setMessage(result.message);
+          return;
+        }
+        await refresh();
+        reset();
+        setMessage('Gespeichert.', true);
+      })
+      // Sonst stirbt der Knopf still, und der Prüfer hält seinen getippten Text
+      // für gespeichert, obwohl nichts geschrieben wurde.
+      .catch(() => setMessage('Speichern nicht möglich. Der Text ist noch da — bitte die Seite neu laden.'));
   });
 
   removeButton.addEventListener('click', (event) => {
@@ -519,15 +548,18 @@ export function createChooser(container: ParentNode, deps: ChooserDeps): Chooser
       return;
     }
 
-    void manage.remove(id).then(async (result) => {
-      if (!result.ok) {
-        setMessage(result.message);
-        return;
-      }
-      await refresh();
-      reset();
-      setMessage('Gelöscht.', true);
-    });
+    void Promise.resolve()
+      .then(() => manage.remove(id))
+      .then(async (result) => {
+        if (!result.ok) {
+          setMessage(result.message);
+          return;
+        }
+        await refresh();
+        reset();
+        setMessage('Gelöscht.', true);
+      })
+      .catch(() => setMessage('Löschen nicht möglich. Bitte die Seite neu laden.'));
   });
 
   reset();
@@ -574,8 +606,8 @@ function matches(item: CachedBaustein, needle: string): boolean {
 
 /**
  * Gruppierung nach Kategorie in der Reihenfolge des ersten Vorkommens. Der
- * Bestand kommt bereits sortiert aus dem Backend (`sortierung, titel, id`); ihn
- * hier neu zu sortieren würde die Anzeigereihenfolge zerstören, die der Admin
+ * Bestand kommt bereits sortiert herein (`sortierung, titel, id`); ihn hier neu
+ * zu sortieren würde die Anzeigereihenfolge zerstören, die jemand vor uns
  * eingestellt hat.
  */
 function groupByKategorie(items: CachedBaustein[]): Map<string, CachedBaustein[]> {

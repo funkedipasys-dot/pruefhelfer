@@ -20,7 +20,7 @@
 
 import { chromeArea } from '../chrome-area';
 import { DEFAULT_BAUSTEINE } from '../core/defaults';
-import { readLocalBausteine } from '../core/local';
+import { SPEICHER_UNERREICHBAR, readLocalBausteine } from '../core/local';
 import { pruefeAufUpdate } from '../core/update-check';
 import { CHOOSER_STYLE, createChooser } from '../ui/chooser';
 import { copyToClipboard } from '../ui/clipboard';
@@ -33,10 +33,16 @@ style.textContent = CHOOSER_STYLE;
 document.head.append(style);
 
 const chooser = createChooser(container, {
-  loadPanel: async () => ({
-    bausteine: [...DEFAULT_BAUSTEINE, ...(await readLocalBausteine(chromeArea))],
-    hint: null,
-  }),
+  // Wie im Content-Script: ist der Speicher weg, bleiben die eingebauten Texte
+  // stehen. Gerade hier — das Popup **ist** die Rückfallebene; es ausgerechnet
+  // dann leer zu zeigen, wenn etwas klemmt, nähme ihm seinen Zweck.
+  loadPanel: async () => {
+    try {
+      return { bausteine: [...DEFAULT_BAUSTEINE, ...(await readLocalBausteine(chromeArea))], hint: null };
+    } catch {
+      return { bausteine: [...DEFAULT_BAUSTEINE], hint: `Nur die eingebauten Texte — ${SPEICHER_UNERREICHBAR}` };
+    }
+  },
   actionLabel: 'Kopieren',
   emptyText: 'Keine Textbausteine vorhanden.',
   run: copyToClipboard,

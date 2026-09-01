@@ -330,19 +330,20 @@ describe('createChooser', () => {
   });
 });
 
+const openNew = (container: HTMLElement): void => {
+  container.querySelector<HTMLButtonElement>('.manage button')?.click();
+};
+
+const type = (container: HTMLElement, titel: string, text: string): void => {
+  const titelInput = container.querySelector<HTMLInputElement>('.form input');
+  const textInput = container.querySelector<HTMLTextAreaElement>('.form textarea');
+  if (titelInput === null || textInput === null) throw new Error('Formularfelder fehlen');
+  titelInput.value = titel;
+  textInput.value = text;
+};
+
 /** Eigene Bausteine anlegen, bearbeiten, löschen (Plan-Punkt 61). */
 describe('Verwaltung eigener Bausteine', () => {
-  const openNew = (container: HTMLElement): void => {
-    container.querySelector<HTMLButtonElement>('.manage button')?.click();
-  };
-
-  const type = (container: HTMLElement, titel: string, text: string): void => {
-    const titelInput = container.querySelector<HTMLInputElement>('.form input');
-    const textInput = container.querySelector<HTMLTextAreaElement>('.form textarea');
-    if (titelInput === null || textInput === null) throw new Error('Formularfelder fehlen');
-    titelInput.value = titel;
-    textInput.value = text;
-  };
 
   it('bleibt ohne Verwaltung eine reine Auswahl', async () => {
     const { chooser, container } = setup({ bausteine: [[...BAUSTEINE, EIGENER]] });
@@ -507,5 +508,71 @@ describe('Verwaltung eigener Bausteine', () => {
     expect(manage.saved).toEqual([]);
     expect(container.querySelector<HTMLElement>('.form')?.hidden).toBe(true);
     expect(container.querySelector<HTMLElement>('.list')?.hidden).toBe(false);
+  });
+});
+
+/**
+ * Der Speicher kann ausfallen — und zwar am häufigsten nicht durch ein volles
+ * Kontingent, sondern durch ein Neuladen der Erweiterung bei offener Seite: das
+ * alte Content-Script bleibt verwaist zurück, und jeder `chrome.*`-Aufruf wirft
+ * ab da sofort.
+ *
+ * Ohne die Riegel hier stürbe jeder dieser Wege still: unbehandelte Rejection,
+ * kein Text, ein Knopf, der nichts tut. Der Prüfer läse „Nichts da." und hielte
+ * seine Textbausteine für verloren — oder schlimmer, hielte einen nicht
+ * gespeicherten Text für gespeichert.
+ */
+describe('Wenn der Speicher ausfällt', () => {
+  const werfen = (): never => {
+    throw new Error('Extension context invalidated.');
+  };
+
+  it('meldet einen fehlgeschlagenen Abruf, statt einen leeren Bestand zu zeigen', async () => {
+    const container = document.createElement('div');
+    document.body.append(container);
+    const chooser = createChooser(container, {
+      loadPanel: werfen,
+      actionLabel: 'Kopieren',
+      emptyText: 'Nichts da.',
+      run: async () => ({ ok: true }),
+    });
+
+    await chooser.refresh();
+
+    expect(container.querySelector('.message')?.textContent).toContain('nicht abrufbar');
+    // Ausdrücklich **nicht** die Leer-Auskunft: sie wäre schlicht falsch.
+    expect(container.querySelector('.empty')?.textContent).not.toBe('Nichts da.');
+  });
+
+  it('lässt „Speichern" nicht still sterben, wenn das Schreiben wirft', async () => {
+    const { chooser, container, save } = setup({
+      manage: { save: werfen, remove: async () => ({ ok: true }) },
+    });
+    await chooser.refresh();
+
+    openNew(container);
+    type(container, 'Eigener', 'Ein Text.');
+    save({ isTrusted: true });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(container.querySelector('.message')?.textContent).toContain('Speichern nicht möglich');
+  });
+
+  it('lässt „Löschen" nicht still sterben, wenn das Schreiben wirft', async () => {
+    const { chooser, container, remove } = setup({
+      bausteine: [[EIGENER]],
+      manage: { save: async () => ({ ok: true }), remove: werfen },
+    });
+    await chooser.refresh();
+
+    container.querySelector<HTMLButtonElement>('.row .edit')?.click();
+    // Zweimal: der erste Klick schärft den Knopf nur.
+    remove({ isTrusted: true });
+    remove({ isTrusted: true });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(container.querySelector('.message')?.textContent).toContain('Löschen nicht möglich');
   });
 });

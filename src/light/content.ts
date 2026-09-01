@@ -16,7 +16,13 @@
 
 import { chromeArea } from '../chrome-area';
 import { DEFAULT_BAUSTEINE } from '../core/defaults';
-import { LOCAL_ID_PREFIX, deleteLocalBaustein, readLocalBausteine, saveLocalBaustein } from '../core/local';
+import {
+  LOCAL_ID_PREFIX,
+  SPEICHER_UNERREICHBAR,
+  deleteLocalBaustein,
+  readLocalBausteine,
+  saveLocalBaustein,
+} from '../core/local';
 import { ABSCHLUSS_DIALOG_SELECTOR, angemahnteFelder } from '../content/abschluss';
 import { ABSCHLUSS_HOST_ID, createAbschlussOverlay } from '../content/abschluss-overlay';
 import { BADGE_HOST_ID } from '../content/badge';
@@ -75,19 +81,33 @@ function start(): void {
   const overlay = createOverlay({
     loadPanel,
     insert: (field, baustein, values) => applyInsertion(field, { text: baustein.text, values }),
+    // **Beide Wege fangen den Speicher ab.** Die Pro-Fassung schreibt über
+    // ihren Service Worker und bekommt einen Fehlschlag dort schon als Antwort
+    // zurück; hier wird direkt geschrieben, also muss der Fehlschlag hier zur
+    // Meldung werden. Der häufigste Fall ist nicht das Kontingent, sondern ein
+    // Neuladen der Erweiterung bei offener Seite: dieses Content-Script bleibt
+    // verwaist zurück, und jeder `chrome.*`-Aufruf wirft ab da sofort.
     manage: {
       save: async (draft) => {
-        const result = await saveLocalBaustein(chromeArea, {
-          // Die Kennung entsteht beim Anlegen und bleibt dann erhalten.
-          id: draft.id ?? `${LOCAL_ID_PREFIX}${crypto.randomUUID()}`,
-          titel: draft.titel,
-          text: draft.text,
-        });
-        return result.ok ? { ok: true } : { ok: false, message: result.message };
+        try {
+          const result = await saveLocalBaustein(chromeArea, {
+            // Die Kennung entsteht beim Anlegen und bleibt dann erhalten.
+            id: draft.id ?? `${LOCAL_ID_PREFIX}${crypto.randomUUID()}`,
+            titel: draft.titel,
+            text: draft.text,
+          });
+          return result.ok ? { ok: true } : { ok: false, message: result.message };
+        } catch {
+          return { ok: false, message: SPEICHER_UNERREICHBAR };
+        }
       },
       remove: async (id): Promise<ActionResult> => {
-        await deleteLocalBaustein(chromeArea, id);
-        return { ok: true };
+        try {
+          await deleteLocalBaustein(chromeArea, id);
+          return { ok: true };
+        } catch {
+          return { ok: false, message: SPEICHER_UNERREICHBAR };
+        }
       },
     },
   });
@@ -121,6 +141,13 @@ function start(): void {
   const abschluss = createAbschlussOverlay({
     read: (dialog) => angemahnteFelder(dialog),
     write: writeFieldValue,
+    // **Vorerst keine Warnung über einen fehlenden Fokus.** Ob der Focus-Trap
+    // der Abschlussmaske den `focus()` auf das Feld dahinter durchlässt, ist am
+    // echten Produktionstool noch nicht gemessen. Schlägt er immer zu, stünde
+    // hier bei jedem Eintrag eine Warnung — und diese Fassung wird öffentlich
+    // verteilt. Erst messen, dann melden; die `inert`-Prüfung in `checkField()`
+    // greift unabhängig davon und verhindert das stille Halbschreiben.
+    warnOhneFokus: false,
   });
 
   // Jeder Beobachter überspringt die Wirte **aller** Overlays, nicht nur den
@@ -199,7 +226,17 @@ function version(): string {
  * Bei jedem Öffnen neu gelesen — zwischen zwei Prüfschritten kann im Panel
  * etwas angelegt oder gelöscht worden sein. Kein Hinweis über der Liste: in
  * dieser Fassung ist „kein Server" der Normalzustand und keine Meldung wert.
+ *
+ * **Ist der Speicher nicht erreichbar, bleiben die eingebauten Texte.** Sie
+ * liegen im Bündel und brauchen niemanden zu fragen. Das Panel deshalb ganz
+ * leer zu lassen hieße, dem Prüfer wegen seiner eigenen fünf Texte auch noch
+ * die fünf zu nehmen, die ohnehin dabei sind. Der Hinweis sagt, was fehlt —
+ * eine stille Kurzliste wäre die schlechtere Auskunft.
  */
 async function loadPanel(): Promise<PanelContents> {
-  return { bausteine: [...DEFAULT_BAUSTEINE, ...(await readLocalBausteine(chromeArea))], hint: null };
+  try {
+    return { bausteine: [...DEFAULT_BAUSTEINE, ...(await readLocalBausteine(chromeArea))], hint: null };
+  } catch {
+    return { bausteine: [...DEFAULT_BAUSTEINE], hint: `Nur die eingebauten Texte — ${SPEICHER_UNERREICHBAR}` };
+  }
 }

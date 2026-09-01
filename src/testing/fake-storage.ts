@@ -6,9 +6,9 @@
  * sonst als „gespeichert" durchgehen, obwohl er es nicht ist.
  *
  * `crashAfterWrites` bricht mitten in einer Schreibfolge ab. Genau das passiert
- * in MV3, wenn der Service Worker zwischen zwei `await` beendet wird; die
- * Generationen-Mechanik aus Plan-Punkt 52 existiert nur wegen dieses Falls und
- * wäre ohne ihn nicht prüfbar.
+ * in MV3, wenn der Hintergrundkontext zwischen zwei `await` beendet wird; jede
+ * Absicherung gegen einen halb geschriebenen Bestand (Plan-Punkt 52) existiert
+ * nur wegen dieses Falls und wäre ohne ihn nicht prüfbar.
  */
 
 import type { StorageArea } from '../core/baustein';
@@ -45,8 +45,8 @@ export class FakeStorage implements StorageArea {
     for (const key of keys) this.data.delete(key);
   }
 
-  /** Das Praefix wird hereingereicht: Generationen sind eine Sache der Kopplung,
-   *  und dieser Nachbau muss auch ohne sie brauchbar bleiben. */
+  /** Das Praefix wird hereingereicht: durchnummerierte Schluessel braucht nur,
+   *  wer einen Bestand nachlaedt — dieser Nachbau muss auch ohne sie taugen. */
   generationKeys(prefix: string): string[] {
     return [...this.data.keys()].filter((key) => key.startsWith(prefix));
   }

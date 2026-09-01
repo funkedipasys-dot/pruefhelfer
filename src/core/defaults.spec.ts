@@ -1,7 +1,7 @@
 /**
- * Die Standardtexte müssen dieselben Zusagen erfüllen wie ein Bestand aus dem
- * Backend — sonst bricht der Chooser genau dann, wenn es keinen Sync gibt, der
- * es reparieren könnte.
+ * Die Standardtexte müssen dieselben Zusagen erfüllen wie ein nachgeladener
+ * Bestand — sonst bricht der Chooser genau dann, wenn es keinen Abgleich gibt,
+ * der es reparieren könnte.
  */
 
 import { DEFAULT_BAUSTEINE } from './defaults';

@@ -119,7 +119,7 @@ export function applyEzDate(field: HTMLInputElement, text: string): EzDateResult
     return { ok: false, message: `${text} passt nicht in das Feld.` };
   }
 
-  if (!writeFieldValue(field, text)) {
+  if (!writeFieldValue(field, text).accepted) {
     return { ok: false, message: 'Das Produktionstool hat die Eingabe verworfen. Bitte erneut versuchen.' };
   }
 

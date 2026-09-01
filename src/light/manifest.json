@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Prüfhelfer Lite",
-  "description": "Textbausteine, Kilometerstand, Erstzulassung und HU-Fälligkeit schneller eintragen. Ohne Konto, ohne Registrierung — alles bleibt auf dem Gerät.",
-  "version": "0.8.1",
+  "description": "Textbausteine, Kilometerstand, Erstzulassung und HU-Fälligkeit schneller eintragen. Ohne Konto, ohne Registrierung — kein fremder Server.",
+  "version": "0.16.0",
   "minimum_chrome_version": "102",
   "icons": {
     "16": "icons/icon-16.png",

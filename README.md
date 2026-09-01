@@ -29,8 +29,8 @@ arbeiten. Sie nimmt sechs Handgriffe ab, die sich pro Prüfung wiederholen:
   `25.12.0010` und damit zum Fehler. Neben der Meldung erscheint ein Knopf mit
   dem Datum, das gemeint war; ein Klick trägt es ein.
 
-**Ohne Konto, ohne Registrierung.** Alles, was du eingibst, bleibt auf dem
-Gerät — es gibt keinen Server, an den es gehen könnte.
+**Ohne Konto, ohne Registrierung.** Alles, was du eingibst, bleibt in deinem
+Netz — es geht an keinen fremden Server.
 
 Die **einzige** Ausnahme ist eine Versionsabfrage: beim Öffnen des Popups wird
 höchstens einmal am Tag nachgesehen, ob eine neuere Fassung veröffentlicht

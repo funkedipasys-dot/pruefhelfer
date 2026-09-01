@@ -15,7 +15,7 @@ import { describeSubstitutionFailure } from '../core/placeholders';
 /** Das Bemerkungsfeld im Ergebnis-Schritt des Produktionstools. */
 export const FIELD_SELECTOR = '#inspectmobility-ergebnis-bemerkung-input-textarea';
 
-export type FieldIssue = 'detached' | 'hidden' | 'disabled' | 'readonly';
+export type FieldIssue = 'detached' | 'hidden' | 'disabled' | 'readonly' | 'inert';
 
 /**
  * `null` heißt: beschreibbar.
@@ -23,11 +23,23 @@ export type FieldIssue = 'detached' | 'hidden' | 'disabled' | 'readonly';
  * Gilt für Textfelder wie für einzeilige Eingaben — die Prüfung ist dieselbe.
  * Die **Formulierungen** darunter sind es nicht: `describeFieldIssue()` spricht
  * vom Bemerkungsfeld, der Kilometerstand hat eigene (Plan-Punkt 67).
+ *
+ * **`inert` ist der Fall, den die anderen vier nicht sehen.** Ein Feld in einem
+ * `inert`-Teilbaum meldet `disabled === false`, `readOnly === false` und eine
+ * ganz normale berechnete Darstellung — es ist trotzdem nicht bedienbar, und
+ * `focus()` darauf tut nichts. Genau das legt der CDK über den Hintergrund,
+ * sobald ein Material-Dialog offen ist: also über das Feld, in das die
+ * Abschluss-Leiste schreiben will. Ohne diese Zeile käme der Wert an, die
+ * Fokus-Klammer bliebe wirkungslos, und das Formular hielte das Feld weiter für
+ * unberührt — gemeldet würde trotzdem Erfolg.
  */
 export function checkField(field: HTMLTextAreaElement | HTMLInputElement): FieldIssue | null {
   if (!field.isConnected) return 'detached';
   if (field.disabled) return 'disabled';
   if (field.readOnly) return 'readonly';
+  // Kein `field.inert`: das Attribut vererbt sich an den Teilbaum, die
+  // Eigenschaft spiegelt aber nur das Attribut am Element selbst.
+  if (field.closest('[inert]') !== null) return 'inert';
   if (!isVisible(field)) return 'hidden';
   return null;
 }
@@ -42,6 +54,8 @@ export function describeFieldIssue(issue: FieldIssue): string {
       return 'Das Bemerkungsfeld ist gesperrt.';
     case 'readonly':
       return 'Das Bemerkungsfeld lässt sich nicht mehr ändern.';
+    case 'inert':
+      return 'Das Bemerkungsfeld liegt hinter einem Dialog und nimmt gerade nichts an.';
   }
 }
 
@@ -67,9 +81,27 @@ export function describeFieldIssue(issue: FieldIssue): string {
  * Gibt zurück, ob der Wert stehen geblieben ist. Die Gegenprüfung sitzt
  * **zwischen** `input` und `change`: beide späteren Ereignisse können selbst
  * eine Änderung auslösen und das Ergebnis verfälschen.
+ *
+ * **Und ob der Fokus überhaupt ankam** — gemessen, nicht angenommen. Ein
+ * Focus-Trap holt ihn sich zurück, ein `inert`-Teilbaum nimmt ihn gar nicht
+ * erst an; in beiden Fällen läuft danach auch `blur()` ins Leere, und die
+ * Neubewertung der Pflichtangabe bleibt aus. Der Wert steht dann sichtbar im
+ * Feld, das Formular hält es aber weiter für unberührt: genau der Fehler vom
+ * 12.08.2026, nur eine Ebene tiefer. `checkField()` fängt den `inert`-Fall
+ * vorher ab — diese Messung deckt den Rest.
  */
-export function writeFieldValue(field: HTMLTextAreaElement | HTMLInputElement, next: string): boolean {
+export interface WriteOutcome {
+  /** Der Wert steht im Feld — die Anwendung hat ihn nicht zurückgeschrieben. */
+  readonly accepted: boolean;
+  /** Der Fokus kam an. Ohne ihn bleibt das Feld für Angular unberührt. */
+  readonly focused: boolean;
+}
+
+export function writeFieldValue(field: HTMLTextAreaElement | HTMLInputElement, next: string): WriteOutcome {
   field.focus({ preventScroll: true });
+  // Vor dem Schreiben gemessen: `input` kann selbst Fokus verschieben.
+  const focused = field.ownerDocument.activeElement === field;
+
   field.value = next;
   field.dispatchEvent(new Event('input', { bubbles: true }));
 
@@ -79,7 +111,7 @@ export function writeFieldValue(field: HTMLTextAreaElement | HTMLInputElement, n
   // Auch bei verworfener Eingabe: das Feld soll so zurückbleiben, wie es
   // vorgefunden wurde, und nicht mit einem Fokus, den niemand gesetzt hat.
   field.blur();
-  return accepted;
+  return { accepted, focused };
 }
 
 export type ApplyResult =
@@ -115,7 +147,7 @@ export function applyInsertion(
   });
   if (!insertion.ok) return { ok: false, message: describeSubstitutionFailure(insertion) };
 
-  if (!writeFieldValue(field, insertion.nextValue)) {
+  if (!writeFieldValue(field, insertion.nextValue).accepted) {
     return { ok: false, message: 'Das Produktionstool hat die Eingabe verworfen. Bitte erneut versuchen.' };
   }
 

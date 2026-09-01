@@ -1,10 +1,11 @@
 /**
  * Eigene, nur auf diesem Gerät gespeicherte Textbausteine (Plan-Punkt 60, 62).
  *
- * **Bewusst getrennt von allem, was ein Server liefert.** Ein zentral
- * gepflegter Bestand gehört einer Backend-Identität: er wird ersetzt, gelöscht
+ * **Bewusst getrennt von allem, was ein Server liefern könnte.** Ein zentral
+ * gepflegter Bestand gehört dem Büro, das ihn pflegt: er wird ersetzt, gelöscht
  * und läuft ab. Was der Prüfer selbst getippt hat, hat all das nicht verdient.
- * Deshalb ein eigener Schlüssel, den kein Aufräumen der Kopplung anfasst.
+ * Deshalb ein eigener Schlüssel, den kein Aufräumen eines Server-Bestands
+ * anfasst — in der Fassung ohne Server ist er schlicht der einzige.
  *
  * **Gespeichert wird nur, was der Mensch eingegeben hat** — `id`, `titel`,
  * `text`. Kategorie und Sortierung fallen beim Lesen aus der Reihenfolge ab;
@@ -17,7 +18,11 @@
 import { TEXTBAUSTEIN_TARGET_MAX_LENGTH, describePlaceholderIssue, parseTextbausteinText } from './placeholders';
 import type { CachedBaustein, StorageArea } from './baustein';
 
-/** Der eine Schlüssel. Ohne Generationen — hier gibt es nichts zu verlieren, was nicht neu tippbar wäre. */
+/**
+ * Der eine Schlüssel. Ohne die Absicherung gegen einen Abbruch mitten im
+ * Schreiben, die ein nachgeladener Bestand braucht: hier gibt es nichts zu
+ * verlieren, was nicht neu tippbar wäre.
+ */
 export const LOCAL_KEY = 'gtue.local.bausteine';
 
 /**
@@ -33,7 +38,23 @@ export const LOCAL_KATEGORIE = 'Eigene';
 /** Genug für einen sprechenden Titel, kurz genug, dass die Liste lesbar bleibt. */
 export const MAX_TITEL_LENGTH = 60;
 
-/** Was aus der Oberfläche hereinkommt. Die Kennung vergibt der Service Worker, nicht der Nutzer. */
+/**
+ * Was dasteht, wenn `chrome.storage` gar nicht erst antwortet.
+ *
+ * Steht hier, weil die Fassung ohne Server sie an drei Stellen braucht — Lesen,
+ * Anlegen, Löschen — und dieselbe Auskunft geben muss. Der häufigste Auslöser
+ * ist nicht das Speicherkontingent, sondern ein Neuladen der Erweiterung bei
+ * offener Seite: das alte Content-Script bleibt verwaist zurück, und jeder
+ * `chrome.*`-Aufruf wirft ab da sofort. „Seite neu laden" ist dann keine
+ * Verlegenheitsformel, sondern genau der Handgriff, der hilft.
+ */
+export const SPEICHER_UNERREICHBAR =
+  'Der lokale Speicher ist gerade nicht erreichbar. Bitte die Seite neu laden.';
+
+/**
+ * Was aus der Oberfläche hereinkommt. Die Kennung vergibt der Aufrufer, nicht
+ * der Nutzer — je Fassung die Stelle, die auch schreibt.
+ */
 export interface LocalDraft {
   id: string;
   titel: string;
@@ -59,8 +80,8 @@ export function isLocalId(id: string): boolean {
  * Liest die eigenen Bausteine.
  *
  * Ein einzelner unbrauchbarer Eintrag wird **übersprungen, nicht der ganze
- * Bestand verworfen** — anders als beim Cache-Umschlag. Der Umschlag ist
- * jederzeit neu holbar, diese Texte sind es nicht: wegen eines kaputten
+ * Bestand verworfen** — anders als bei einem Bestand, der sich nachladen lässt.
+ * Der ist jederzeit neu holbar, diese Texte sind es nicht: wegen eines kaputten
  * Eintrags alle anderen zu löschen wäre der teurere Fehler.
  */
 export async function readLocalBausteine(area: StorageArea): Promise<CachedBaustein[]> {
@@ -102,10 +123,10 @@ export type ValidatedDraft =
 /**
  * Prüft einen Entwurf, bevor er gespeichert wird.
  *
- * Die Grammatikprüfung ist dieselbe, an der auch das Backend seine Bausteine
- * misst — ein selbst getippter Text mit `{{Kennzeichen}}` darin würde sonst
- * anstandslos gespeichert und erst beim Einfügen scheitern, dann aber vor dem
- * Fahrzeug statt beim Anlegen.
+ * Die Grammatikprüfung ist dieselbe wie überall sonst (`placeholders.ts`) — ein
+ * selbst getippter Text mit `{{Kennzeichen}}` darin würde sonst anstandslos
+ * gespeichert und erst beim Einfügen scheitern, dann aber vor dem Fahrzeug
+ * statt beim Anlegen.
  *
  * Ebenso die Längenprüfung: passt schon die kürzestmögliche Fassung nicht ins
  * Bemerkungsfeld, ist der Baustein unbenutzbar. Gemessen wird gegen die
