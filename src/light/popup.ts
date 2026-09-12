@@ -25,6 +25,9 @@ import { pruefeAufUpdate } from '../core/update-check';
 import { CHOOSER_STYLE, createChooser } from '../ui/chooser';
 import { copyToClipboard } from '../ui/clipboard';
 
+/** Wörtlich wie in `sw.ts` und `content.ts` — kein Import, siehe dort. */
+const FSD_AUTOMATIK_KEY = 'fsd.automatik';
+
 const container = document.getElementById('chooser');
 if (container === null) throw new Error('Element fehlt: chooser');
 
@@ -50,6 +53,28 @@ const chooser = createChooser(container, {
 
 void chooser.refresh();
 void zeigeUpdateHinweis();
+void bindeFsdAutomatik();
+
+/**
+ * Die Dauereinstellung der FSD-Automatik — direkt im Speicher, die Seite
+ * hört über `chrome.storage.onChanged` mit. Ohne Speicher bleibt der Haken
+ * einfach aus; er ist Zugabe, nicht Rückfallebene.
+ */
+async function bindeFsdAutomatik(): Promise<void> {
+  const box = document.getElementById('fsd-automatik');
+  if (!(box instanceof HTMLInputElement)) return;
+  try {
+    box.checked = (await chromeArea.get([FSD_AUTOMATIK_KEY]))[FSD_AUTOMATIK_KEY] === true;
+  } catch {
+    return;
+  }
+  box.addEventListener('change', (event) => {
+    if (!event.isTrusted) return;
+    void chromeArea.set({ [FSD_AUTOMATIK_KEY]: box.checked }).catch(() => {
+      box.checked = !box.checked;
+    });
+  });
+}
 
 /**
  * Der Hinweis ist reine Zugabe: schlägt der Abruf fehl, bleibt das Popup

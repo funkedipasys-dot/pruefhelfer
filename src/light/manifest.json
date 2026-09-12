@@ -2,8 +2,12 @@
   "manifest_version": 3,
   "name": "Prüfhelfer Lite",
   "description": "Textbausteine, Kilometerstand, Erstzulassung und HU-Fälligkeit schneller eintragen. Ohne Konto, ohne Registrierung — kein fremder Server.",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "minimum_chrome_version": "102",
+  "background": {
+    "service_worker": "sw.js",
+    "type": "module"
+  },
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -20,7 +24,7 @@
       "128": "icons/icon-128.png"
     }
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "idle"],
   "host_permissions": ["https://raw.githubusercontent.com/funkedipasys-dot/pruefhelfer/*"],
   "content_scripts": [
     {

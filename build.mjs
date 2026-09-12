@@ -27,6 +27,7 @@ const root = dirname(fileURLToPath(import.meta.url));
 const dist = join(root, 'dist');
 
 const BUNDLES = [
+  { entry: 'src/light/sw.ts', out: 'sw.js', format: 'esm' },
   { entry: 'src/light/content.ts', out: 'content.js', format: 'iife' },
   { entry: 'src/light/popup.ts', out: 'popup.js', format: 'esm' },
 ];

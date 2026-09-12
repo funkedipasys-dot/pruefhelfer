@@ -85,11 +85,13 @@ const NETZ_AUSGAENGE: readonly [string, RegExp][] = [
 describe('Offene Fassung ohne Server (Plan-Punkt 71-73)', () => {
   let light: string;
   let lightPopup: string;
+  let lightSw: string;
   let manifest: LightManifest;
 
   beforeAll(async () => {
     light = await bundle('src/light/content.ts', 'iife');
     lightPopup = await bundle('src/light/popup.ts', 'esm');
+    lightSw = await bundle('src/light/sw.ts', 'esm');
     manifest = await readJson<LightManifest>('src/light/manifest.json');
   });
 
@@ -101,6 +103,18 @@ describe('Offene Fassung ohne Server (Plan-Punkt 71-73)', () => {
     for (const [ausgang, muster] of NETZ_AUSGAENGE) {
       expect(muster.test(light), `content: ${ausgang}`).toBe(false);
     }
+  });
+
+  /**
+   * Der Hintergrunddienst (seit 0.21.0) tut genau eines: den Leerlauf des
+   * Rechners nach `chrome.storage` schreiben. Kein Netz, keine Nachrichten —
+   * dieselbe Liste wie fürs Content-Script.
+   */
+  it('ruft aus dem Hintergrunddienst nirgends das Netz', () => {
+    for (const [ausgang, muster] of NETZ_AUSGAENGE) {
+      expect(muster.test(lightSw), `sw: ${ausgang}`).toBe(false);
+    }
+    expect(lightSw).toContain('chrome.idle');
   });
 
   /**
@@ -165,7 +179,7 @@ describe('Offene Fassung ohne Server (Plan-Punkt 71-73)', () => {
   });
 
   it('enthält keinen Kopplungs- oder Abgleich-Code', () => {
-    for (const code of [light, lightPopup]) {
+    for (const code of [light, lightPopup, lightSw]) {
       expect(code).not.toContain('auth/extension/pair');
       expect(code).not.toContain('Bearer ');
       expect(code).not.toContain('gtue.cache.pointer');
@@ -174,15 +188,20 @@ describe('Offene Fassung ohne Server (Plan-Punkt 71-73)', () => {
   });
 
   it('nennt keine Serveradresse', () => {
-    for (const code of [light, lightPopup]) {
+    for (const code of [light, lightPopup, lightSw]) {
       expect(code).not.toContain('gino-hub');
       expect(code).not.toContain('localhost:3333');
     }
   });
 
-  it('kommt ohne Hintergrunddienst aus — es gibt nichts durchzureichen', () => {
-    expect(manifest.background).toBeUndefined();
-    expect(manifest.permissions).toEqual(['storage']);
+  /**
+   * Bis 0.20.0 ohne Hintergrunddienst. Seit 0.21.0 gibt es einen, aber nur
+   * für `chrome.idle` — was er darf, steht in den zwei Berechtigungen, und
+   * was er tut, prüft der Test oben am Bündel.
+   */
+  it('hat einen Hintergrunddienst nur für den Leerlauf', () => {
+    expect(manifest.background).toEqual({ service_worker: 'sw.js', type: 'module' });
+    expect(manifest.permissions).toEqual(['storage', 'idle']);
     expect(manifest.optional_host_permissions).toBeUndefined();
   });
 

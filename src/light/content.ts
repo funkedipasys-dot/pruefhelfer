@@ -136,6 +136,39 @@ function start(): void {
   // einziges Mal beim Anlegen.
   const fsdAuto = createFsdAuto({ label: `Prüfhelfer ${version()}` });
 
+  // Scharf im Leerlauf (seit 0.21.0, wie Pro): der Hintergrunddienst schreibt
+  // `fsd.leerlauf` nach `chrome.storage.local`, das Popup `fsd.automatik`;
+  // hier wird beides gelesen und mitgehört. Ist die Einstellung aus, bleibt
+  // der Handschalter in der Leiste unberührt. Schlüssel wörtlich wie in
+  // `sw.ts` — ein Import von dort zöge dessen `chrome.idle`-Aufrufe hierher.
+  const fsd = { an: false, leerlauf: false };
+  const stelleFsd = (): void => {
+    if (fsd.an) fsdAuto.setArmed(fsd.leerlauf, 'scharf bei Leerlauf');
+  };
+  const onFsdSpeicher = (aenderungen: Record<string, chrome.storage.StorageChange>): void => {
+    if ('fsd.automatik' in aenderungen) fsd.an = aenderungen['fsd.automatik']?.newValue === true;
+    if ('fsd.leerlauf' in aenderungen) fsd.leerlauf = aenderungen['fsd.leerlauf']?.newValue === true;
+    stelleFsd();
+  };
+  // Ohne Speicher (Kontext verwaist, siehe oben) keine Automatik von allein —
+  // der Handschalter in der Leiste bleibt.
+  const fsdSpeicher = ((): typeof chrome.storage.onChanged | null => {
+    try {
+      return chrome.storage.onChanged;
+    } catch {
+      return null;
+    }
+  })();
+  fsdSpeicher?.addListener(onFsdSpeicher);
+  void Promise.resolve()
+    .then(() => chromeArea.get(['fsd.automatik', 'fsd.leerlauf']))
+    .then((werte) => {
+      fsd.an = werte['fsd.automatik'] === true;
+      fsd.leerlauf = werte['fsd.leerlauf'] === true;
+      stelleFsd();
+    })
+    .catch(() => {});
+
   // Die einzige Leiste, die bei offenem Dialog erscheinen *soll* — sie steht
   // deshalb nicht in der Liste von `hideWhileDialogOpen`.
   const abschluss = createAbschlussOverlay({
@@ -203,6 +236,7 @@ function start(): void {
     // `stop()` meldet ein verbundenes Feld ab — das ist der Zuhörer am Formular,
     // um den es geht. `destroy()` räumt danach die Wirte weg.
     for (const stop of stops) stop();
+    fsdSpeicher?.removeListener(onFsdSpeicher);
     fsdAuto.destroy();
     overlay.destroy();
     mileage.destroy();

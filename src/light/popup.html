@@ -18,6 +18,14 @@
     kopieren und von Hand einsetzen.
   </p>
 
+  <!-- FSD-Automatik als Dauereinstellung. Scharf wird sie erst, wenn der
+       Rechner drei Minuten ohne Bedienung ist — der Hintergrunddienst merkt
+       das in chrome.storage, die Seite liest es dort. -->
+  <label class="schalter">
+    <input id="fsd-automatik" type="checkbox">
+    FSD-Automatik im Leerlauf — nach 3 Minuten ohne Bedienung öffnet sie neue Aufträge
+  </label>
+
   <div id="chooser"></div>
 </main>
 

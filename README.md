@@ -103,10 +103,14 @@ Erweiterung nicht ab und soll es auch nicht.
 | Berechtigung | Wofür |
 |---|---|
 | `storage` | Die selbst angelegten Textbausteine, lokal auf diesem Gerät. |
+| `idle` | Ob der Rechner seit drei Minuten ohne Maus und Tastatur ist — dafür, dass die FSD-Automatik sich im Leerlauf selbst scharf stellt (Haken im Popup). |
 | Zugriff auf `shell-frontend.gtue.world` | Ohne Zugriff auf die Seite kein Knopf an ihrem Feld. |
 | Zugriff auf `raw.githubusercontent.com/funkedipasys-dot/pruefhelfer/*` | Die Versionsabfrage. Nur dieses eine öffentliche Repo, sonst nichts. |
 
-Kein Hintergrunddienst, keine Telemetrie. Insbesondere wird **nicht erfasst,
+Keine Telemetrie. Der Hintergrunddienst (seit 0.21.0) tut genau eines: er
+merkt sich den Leerlauf des Rechners, damit die FSD-Automatik weiß, wann sie
+darf — er geht nicht ans Netz, und das prüft derselbe Test wie beim
+Content-Script. Insbesondere wird **nicht erfasst,
 welcher Textbaustein benutzt wurde** — das wäre eine Leistungsüberwachung des
 Prüfers und geht eine Erweiterung nichts an.
 
@@ -151,8 +155,9 @@ Rechner verlassen könnte — `fetch`, `XMLHttpRequest`, `sendBeacon`, `WebSocke
 `EventSource`, `RTCPeerConnection`, dynamisches `import()`, `new Image()`,
 Nachrichten an einen Hintergrunddienst, und Serveradressen dazu.
 
-- Im **Content-Script** — dem Teil, der am Prüfauftrag mitarbeitet — ist **jeder**
-  dieser Wege verboten. Dort gibt es keine Ausnahme.
+- Im **Content-Script** — dem Teil, der am Prüfauftrag mitarbeitet — und im
+  **Hintergrunddienst** ist **jeder** dieser Wege verboten. Dort gibt es keine
+  Ausnahme.
 - Im **Popup** ist genau eine Erwähnung von `fetch` erlaubt, und ein weiterer
   Test verlangt, dass außer der Manifest-Adresse und dem Link auf die
   Release-Seite **keine** weitere Adresse im Bündel vorkommt. „Eine Ausnahme"
