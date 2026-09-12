@@ -69,6 +69,9 @@ section[hidden] { display: none; }
 #pasted:focus,
 #pairing input:focus { outline: none; border-color: #da1f3d; background: #fff; }
 
+.schalter { display: flex; gap: 6px; align-items: flex-start; margin: 8px; }
+.schalter input { margin: 2px 0 0; flex: 0 0 auto; }
+
 .target { margin: 8px; font-weight: 600; }
 .target.bad { font-weight: 400; color: #da1f3d; }
 

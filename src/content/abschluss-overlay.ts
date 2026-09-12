@@ -204,9 +204,12 @@ export function createAbschlussOverlay(deps: AbschlussOverlayDeps): AbschlussOve
    * Gesucht wird über den Namen, nicht über eine gemerkte Referenz — siehe den
    * Kopf dieser Datei. Der `isTrusted`-Riegel wie überall: was nicht von einem
    * Menschen kommt, schreibt nicht in ein Prüffeld.
+   *
+   * Zwei Wege führen hierher — der Knopf und `Enter` im Feld daneben. Deshalb
+   * `Event` statt `MouseEvent`: gelesen wird ohnehin nur `isTrusted`.
    */
-  const eintragen = (event: MouseEvent, name: string, eingabe: HTMLInputElement): void => {
-    if (!event.isTrusted) return melde('Nur per Klick möglich.', true);
+  const eintragen = (event: Event, name: string, eingabe: HTMLInputElement): void => {
+    if (!event.isTrusted) return melde('Nur von Hand möglich.', true);
 
     const current = dialog;
     if (current === null || !current.isConnected) return melde('Die Maske ist nicht mehr offen.', true);
@@ -256,20 +259,31 @@ export function createAbschlussOverlay(deps: AbschlussOverlayDeps): AbschlussOve
     // bekommt mit `number` die Ziffern-Tastatur und wehrt Buchstaben ab.
     eingabe.type = typ;
 
-    // …bis auf die Kürzel, die das Produktionstool an seinen eigenen Feldern
-    // kennt. Wer zwischen beiden Masken wechselt, soll nicht umdenken müssen:
-    // `A`/`N`/`L` und monatsweise Pfeiltasten im Monatsfeld, `H`/`G` im
+    // …bis auf `Enter` und die Kürzel, die das Produktionstool an seinen eigenen
+    // Feldern kennt. Wer zwischen beiden Masken wechselt, soll nicht umdenken
+    // müssen: `A`/`N`/`L` und monatsweise Pfeiltasten im Monatsfeld, `H`/`G` im
     // Datumsfeld. Alles andere bleibt die eingebaute Bedienung des Feldes.
-    if (typ === 'month' || typ === 'date') {
-      eingabe.addEventListener('keydown', (event: KeyboardEvent) => {
-        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-        const wert =
-          typ === 'month' ? monatTaste(event.key, eingabe.value) : datumTaste(event.key);
-        if (wert === null) return;
+    eingabe.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+
+      // `Enter` im Feld trägt ein — derselbe Weg wie der Knopf, nur ohne den
+      // Umweg über Tab und Maus. Das Ereignis bleibt hier: die Maske dahinter
+      // hat eine eigene Enter-Behandlung, und ein durchgereichtes `Enter`
+      // könnte sie absenden oder schließen, während der Prüfer nur eintragen
+      // wollte. Der `isTrusted`-Riegel gilt unverändert — er sitzt in
+      // `eintragen()` und kennt keinen Unterschied zwischen Taste und Klick.
+      if (event.key === 'Enter') {
         event.preventDefault();
-        eingabe.value = wert;
-      });
-    }
+        event.stopPropagation();
+        return eintragen(event, name, eingabe);
+      }
+
+      if (typ !== 'month' && typ !== 'date') return;
+      const wert = typ === 'month' ? monatTaste(event.key, eingabe.value) : datumTaste(event.key);
+      if (wert === null) return;
+      event.preventDefault();
+      eingabe.value = wert;
+    });
 
     const knopf = document.createElement('button');
     knopf.type = 'button';

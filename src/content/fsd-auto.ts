@@ -6,6 +6,12 @@
  * ist; dieser Adapter beobachtet das SPA-DOM, zeigt den Zustand und klickt einen
  * fälligen Auftrag genau einmal an.
  *
+ * **Seit 2026-09-11 auch von außen scharf zu stellen** (`setArmed`): der
+ * Service Worker meldet über `content.ts`, ob die Dauereinstellung an ist und
+ * ob der Rechner im Leerlauf steht (`chrome.idle`, systemweit — Christians
+ * Entscheidung vom 2026-09-10). Der Schalter in der Leiste bleibt als Notaus
+ * und sichtbarer Zustand; er entscheidet nichts mehr allein.
+ *
  * **In beiden Fassungen.** Bis 2026-08-13 lag das hier unter `src/pro/`, aus
  * einer Produktentscheidung — nicht aus einer technischen Abhängigkeit. Diese
  * Datei geht nirgends ans Netz und rührt keinen Speicher an; die Trennlinie
@@ -166,6 +172,13 @@ export interface FsdAutoOptions extends FsdAutoCoreOptions {
 export interface FsdAutoHandle {
   destroy: () => void;
   snapshot: () => FsdAutoSnapshot;
+  /**
+   * Scharf oder still von außen. `reason` steht bei `false` hinter „AUS ·";
+   * so sieht der Prüfer, dass die Automatik nur auf den Leerlauf wartet.
+   * Läuft gerade „Alle durchklicken" oder ist die Leiste gesperrt (DEV), wird
+   * nicht scharf gestellt — ein Durchlauf gehört dem, der ihn angestoßen hat.
+   */
+  setArmed: (armed: boolean, reason?: string | null) => void;
   /** Zum Prüfen; der produktive Shadow Root bleibt geschlossen. */
   readonly shadow: ShadowRoot;
 }
@@ -540,6 +553,15 @@ export function createFsdAuto(options: FsdAutoOptions): FsdAutoHandle {
   return {
     shadow,
     snapshot: () => core.snapshot(),
+    setArmed(armed, reason = null) {
+      if (destroyed || run !== null) return;
+      if (!armed) {
+        deactivate(reason);
+        return;
+      }
+      if (locked || core.snapshot().mode !== 'off') return;
+      activate();
+    },
     destroy() {
       if (destroyed) return;
       destroyed = true;

@@ -59,18 +59,29 @@ const notiz = (shadow: ShadowRoot): HTMLElement => shadow.querySelector<HTMLElem
  */
 type FakeClick = (event: { isTrusted: boolean }) => void;
 const angemeldet: { target: EventTarget; listener: FakeClick }[] = [];
+/** Dasselbe für die Tasten — eigene Liste, sonst verschöben sich die Klick-Indizes. */
+type FakeKey = (event: { isTrusted: boolean; key: string; preventDefault: () => void; stopPropagation: () => void }) => void;
+const tasten: FakeKey[] = [];
 const add = EventTarget.prototype.addEventListener;
 
 const klick = (index = 0, isTrusted = true): void => {
   angemeldet[index]!.listener({ isTrusted });
 };
 
+const taste = (key: string, index = 0, isTrusted = true): void => {
+  tasten[index]!({ isTrusted, key, preventDefault: () => undefined, stopPropagation: () => undefined });
+};
+
 beforeEach(() => {
   document.body.replaceChildren();
   angemeldet.length = 0;
+  tasten.length = 0;
   EventTarget.prototype.addEventListener = function (this: EventTarget, type, listener, options) {
     if (type === 'click' && typeof listener === 'function') {
       angemeldet.push({ target: this, listener: listener as unknown as FakeClick });
+    }
+    if (type === 'keydown' && typeof listener === 'function') {
+      tasten.push(listener as unknown as FakeKey);
     }
     return add.call(this, type, listener, options);
   };
@@ -239,8 +250,40 @@ it('schreibt nichts ohne Wert und nichts ohne echten Klick', () => {
 
   eingabe(overlay.shadow).value = '08.2028';
   klick(0, false);
-  expect(meldung(overlay.shadow).textContent).toBe('Nur per Klick möglich.');
+  expect(meldung(overlay.shadow).textContent).toBe('Nur von Hand möglich.');
   expect(calls).toEqual([]);
+  overlay.destroy();
+});
+
+/**
+ * Der Weg, den Christian am 2026-09-03 verlangt hat: Datum tippen, `Enter`,
+ * fertig — ohne aus dem Feld heraus auf „Eintragen" zu greifen.
+ */
+it('trägt auf Enter im Feld ein, ohne den Umweg über den Knopf', () => {
+  const input = echtesFeld();
+  const { calls, write } = schreibt();
+  const overlay = createAbschlussOverlay({ read: () => [angemahnt('HU-Fälligkeit', input)], write });
+  overlay.attach(maske());
+
+  eingabe(overlay.shadow).value = '2028-08';
+  taste('Enter');
+
+  expect(calls).toEqual([[input, '08.2028']]);
+  expect(meldung(overlay.shadow).textContent).toBe(`HU-Fälligkeit: 08.2028 eingetragen. ${NACHZIEHEN}`);
+  overlay.destroy();
+});
+
+it('lässt auch Enter nur gelten, wenn ein Mensch es gedrückt hat', () => {
+  const input = echtesFeld();
+  const { calls, write } = schreibt();
+  const overlay = createAbschlussOverlay({ read: () => [angemahnt('HU-Fälligkeit', input)], write });
+  overlay.attach(maske());
+
+  eingabe(overlay.shadow).value = '2028-08';
+  taste('Enter', 0, false);
+
+  expect(calls).toEqual([]);
+  expect(meldung(overlay.shadow).textContent).toBe('Nur von Hand möglich.');
   overlay.destroy();
 });
 

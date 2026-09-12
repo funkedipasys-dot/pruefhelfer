@@ -279,6 +279,42 @@ describe('FSD-Automatik – DOM-Controller', () => {
     expect(clicked).not.toHaveBeenCalled();
   });
 
+  it('lässt sich von außen scharf und still stellen, ohne Klick auf die Leiste', async () => {
+    addOrder(0);
+    const handle = start();
+
+    handle.setArmed(false, 'scharf bei Leerlauf');
+    expect(handle.snapshot().mode).toBe('off');
+    expect(toggle().textContent).toContain('scharf bei Leerlauf');
+
+    handle.setArmed(true);
+    await vi.advanceTimersByTimeAsync(3_000);
+    expect(handle.snapshot().mode).toBe('armed');
+
+    // Nochmal scharf: kein zweites Baselining, der Zustand bleibt.
+    handle.setArmed(true);
+    expect(handle.snapshot().mode).toBe('armed');
+
+    handle.setArmed(false, 'Bedienung erkannt');
+    expect(handle.snapshot().mode).toBe('off');
+    expect(toggle().textContent).toContain('Bedienung erkannt');
+  });
+
+  it('stellt gesperrt (DEV-Aufnahme) und während des Durchlaufs nicht scharf', async () => {
+    addOrder(0);
+    const handle = start();
+
+    setFsdLocked(true);
+    handle.setArmed(true);
+    expect(handle.snapshot().mode).toBe('off');
+    setFsdLocked(false);
+
+    runButton().click();
+    handle.setArmed(true);
+    expect(handle.snapshot().mode).toBe('off');
+    expect(toggle().textContent).toContain('Durchklicken');
+  });
+
   it('klickt das Kind .auftrag-element an, nicht den Wirt', async () => {
     addOrder(0);
     start();
