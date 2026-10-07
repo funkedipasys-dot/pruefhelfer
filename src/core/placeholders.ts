@@ -22,7 +22,7 @@ export const PLACEHOLDER_NAME_PATTERN = /^[a-z][a-z0-9_]{0,31}$/;
 
 /**
  * Rückfall-Obergrenze des GTÜ-Bemerkungsfeldes
- * (`#inspectmobility-ergebnis-bemerkung-input-textarea`, `maxlength=500`).
+ * (`FIELD_SELECTOR` in `src/content/field.ts`, `maxlength=500`).
  *
  * Zur Laufzeit gilt das tatsächlich am Feld gelesene `maxLength` (Plan-Punkt 48);
  * dieser Wert greift nur, wenn das Feld keines meldet.

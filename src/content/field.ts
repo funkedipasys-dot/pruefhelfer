@@ -12,8 +12,13 @@
 import { buildInsertion, effectiveLimit } from '../core/insertion';
 import { describeSubstitutionFailure } from '../core/placeholders';
 
-/** Das Bemerkungsfeld im Ergebnis-Schritt des Produktionstools. */
-export const FIELD_SELECTOR = '#inspectmobility-ergebnis-bemerkung-input-textarea';
+/**
+ * Das Bemerkungsfeld im Ergebnis-Schritt des Produktionstools. GTÜ hat die ID
+ * im Oktober 2026 auf `…-hu-bemerkung-textarea` umbenannt; die alte bleibt
+ * mit drin, falls andere Prüfarten sie noch tragen.
+ */
+export const FIELD_SELECTOR =
+  '#inspectmobility-ergebnis-hu-bemerkung-textarea, #inspectmobility-ergebnis-bemerkung-input-textarea';
 
 export type FieldIssue = 'detached' | 'hidden' | 'disabled' | 'readonly' | 'inert';
 
